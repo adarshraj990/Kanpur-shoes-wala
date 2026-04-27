@@ -1,0 +1,96 @@
+<!-- 
+SNAPSHOT: 2026-04-26 | Phase 1: Project Bootstrap
+- Initialized HTML5 structure with SEO meta tags.
+- Integrated Google Fonts (Inter, Orbitron).
+- Linked style.css and app.js.
+- Set up Hero section with premium image.
+- Next: Build the interactive product grid and cart logic.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Premium Futuristic Footwear</title>
+    <meta name="description" content="Discover the future of footwear with AURA. Premium sneakers designed for comfort and style.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark text-light">
+    <header id="header" class="glass-nav fixed-top">
+        <nav class="container flex-between py-1">
+            <div class="logo">
+                <h1 class="orbitron font-bold tracking-lg">AURA</h1>
+            </div>
+            <ul class="nav-links flex gap-3">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#collection" class="nav-link">Collection</a></li>
+                <li><a href="#about" class="nav-link">Innovation</a></li>
+                <li><a href="#contact" class="nav-link">Connect</a></li>
+            </ul>
+            <div class="nav-actions flex gap-2">
+                <button id="search-btn" class="icon-btn"><span class="icon">🔍</span></button>
+                <button id="cart-btn" class="icon-btn relative">
+                    <span class="icon">🛒</span>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero min-h-100 flex-center relative overflow-hidden">
+            <div class="hero-bg-accent"></div>
+            <div class="container grid-2">
+                <div class="hero-content" data-aos="fade-right">
+                    <span class="badge">New Arrival 2026</span>
+                    <h2 class="hero-title orbitron font-black text-gradient">STEP INTO <br> THE FUTURE</h2>
+                    <p class="hero-desc">Experience the pinnacle of footwear engineering. The AURA-V1 combines neural-knit comfort with gravity-defying aesthetics.</p>
+                    <div class="hero-btns flex gap-2">
+                        <button class="btn-primary">Shop Now</button>
+                        <button class="btn-outline">Explore Tech</button>
+                    </div>
+                </div>
+                <div class="hero-image-container" data-aos="zoom-in">
+                    <div class="shoe-glow"></div>
+                    <img src="hero_shoe_premium_1777193889402.png" alt="AURA V1 Futuristic Sneaker" class="hero-shoe floating">
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Grid Backlog Placeholder -->
+        <section id="collection" class="py-10">
+            <div class="container text-center mb-5">
+                <h3 class="orbitron text-xl">THE COLLECTION</h3>
+                <p class="text-muted">Precision crafted for every dimension.</p>
+            </div>
+            <div class="product-grid container" id="product-container">
+                <!-- Products will be injected by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer py-5">
+        <div class="container grid-4">
+            <div class="footer-brand">
+                <h2 class="orbitron">AURA</h2>
+                <p>Redefining footwear for the next generation of explorers.</p>
+            </div>
+            <!-- Additional footer links -->
+        </div>
+        <div class="footer-bottom text-center py-2">
+            <p>&copy; 2026 AURA Footwear. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
