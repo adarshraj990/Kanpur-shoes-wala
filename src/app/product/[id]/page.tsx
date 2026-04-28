@@ -18,6 +18,7 @@ import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import AuthModal from "@/components/AuthModal";
+import ReviewSection from "@/components/ReviewSection";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -194,6 +195,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewSection productId={id as string} />
       </div>
     </main>
   );

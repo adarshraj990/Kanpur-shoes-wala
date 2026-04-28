@@ -1,6 +1,6 @@
-/* MASTER_LOG - APRIL 27, 2026 
-- Project Status: Advanced Inventory Management.
-- Last Action: Multi-image upload and detailed descriptions enabled in Malik Dashboard.
+/* MASTER_LOG - APRIL 28, 2026 
+- Project Status: Deployed to GitHub.
+- Last Action: Successfully pushed all code to https://github.com/adarshraj990/Kanpur-shoes-wala.
 */
 
 "use client";
@@ -23,10 +23,13 @@ export default function MalikDashboard() {
   const [description, setDescription] = useState("");
   const [detailedDescription, setDetailedDescription] = useState("");
   const [price, setPrice] = useState<string>("");
+  const [category, setCategory] = useState("Premium Shoes");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const CATEGORIES = ["Premium Shoes", "Sneakers", "Chelsea Boots", "Slides & Sandals", "Running & Sports", "Casual Wear"];
 
   // Analytics & Orders
   const [analytics, setAnalytics] = useState<any>({ totalOrders: 0, totalRevenue: 0, liveVisitors: 0 });
@@ -90,6 +93,7 @@ export default function MalikDashboard() {
         description,
         detailed_description: detailedDescription,
         price: numericPrice,
+        category: category,
         image_url: imageUrls[0], // Main display image
         image_urls: imageUrls,    // Gallery images
         created_at: new Date().toISOString()
@@ -97,7 +101,7 @@ export default function MalikDashboard() {
       if (error) throw error;
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-      setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice("");
+      setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice(""); setCategory("Premium Shoes");
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -129,7 +133,7 @@ export default function MalikDashboard() {
                 Add Premium Product
               </h2>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase text-zinc-400 ml-1">Product Name</label>
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kanpur Air V2" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all" />
@@ -137,6 +141,18 @@ export default function MalikDashboard() {
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase text-zinc-400 ml-1">Price (INR)</label>
                     <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="799" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400 ml-1">Category</label>
+                    <select 
+                      value={category} 
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold appearance-none"
+                    >
+                      {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
