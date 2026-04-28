@@ -55,6 +55,10 @@ export default function CheckoutPage() {
         user_id: user?.id || null,
         amount: item.price * item.quantity,
         customer_name: formData.fullName,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        pincode: formData.pincode,
         status: "success",
         created_at: new Date().toISOString(),
       }));
