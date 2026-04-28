@@ -52,6 +52,7 @@ export default function CheckoutPage() {
       // Add each item in cart as an order entry (or handle as batch)
       const orderEntries = cart.map(item => ({
         product_id: item.id,
+        user_id: user?.id || null,
         amount: item.price * item.quantity,
         customer_name: formData.fullName,
         status: "success",

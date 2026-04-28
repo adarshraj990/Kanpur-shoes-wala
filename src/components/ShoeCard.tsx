@@ -9,6 +9,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import Link from "next/link";
 
 interface Shoe {
   id: number;

@@ -46,6 +46,7 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
         <div className="flex items-center gap-6 md:gap-8">
           <ul className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
             <li><a href="#gallery" className="hover:text-zinc-900 transition-colors">Collection</a></li>
+            {user && <li><a href="/orders" className="hover:text-zinc-900 transition-colors">My Orders</a></li>}
             <li><a href="#" className="hover:text-zinc-900 transition-colors">Our Story</a></li>
           </ul>
 
