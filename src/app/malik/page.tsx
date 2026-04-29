@@ -1,17 +1,17 @@
-/* MASTER_LOG - APRIL 28, 2026 
-- Project Status: Logistics Ready.
-- Last Action: Integrated Professional Shipping Label Generator (jsPDF) for all orders.
-- Status: Secure /malik route active, Inventory & Logistics live.
+/* MASTER_LOG - APRIL 29, 2026 
+- Fix 1: Replaced Math.random() liveVisitors with Supabase Realtime Presence.
+- Fix 2: Added Realtime subscription to 'orders' table for live updates.
+- Fix 3: Added error handling to all fetch operations + manual Refresh button.
 */
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { 
-  Check, Loader2, Image as ImageIcon, 
+  Check, Loader2, Image as ImageIcon, RefreshCw,
   Trash2, Plus, Minus, Package, LayoutGrid,
   TrendingUp, ShoppingCart, DollarSign, Activity,
   Printer, Tag, FileText, User, MapPin, Phone
@@ -41,6 +41,10 @@ export default function MalikDashboard() {
   const [analytics, setAnalytics] = useState<any>({ totalOrders: 0, totalRevenue: 0, liveVisitors: 0 });
   const [ordersList, setOrdersList] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Ref to hold the Presence channel so we can clean it up
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -52,8 +56,16 @@ export default function MalikDashboard() {
 
   useEffect(() => {
     if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email || ""))) router.push("/");
-    fetchAnalytics();
-    fetchShoes();
+    if (user && ADMIN_EMAILS.includes(user.email || "")) {
+      fetchAnalytics();
+      fetchShoes();
+      setupRealtimeSubscriptions();
+    }
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.channel("orders-realtime").unsubscribe();
+      presenceChannelRef.current?.unsubscribe();
+    };
   }, [user, authLoading]);
 
   const fetchShoes = async () => {
@@ -63,19 +75,73 @@ export default function MalikDashboard() {
     setLoadingShoes(false);
   };
 
-  const fetchAnalytics = async () => {
-    setLoadingOrders(true);
-    const { data: orders } = await supabase.from("orders").select("*, shoes(name)").order('created_at', { ascending: false });
-    if (orders) {
+  const fetchAnalytics = async (isManualRefresh = false) => {
+    if (isManualRefresh) setIsRefreshing(true);
+    else setLoadingOrders(true);
+    setFetchError(null);
+
+    // FIX 1: Proper error handling on order fetch
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select("*, shoes(name)")
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("[Dashboard] Orders fetch error:", error.message);
+      setFetchError(error.message);
+    } else if (orders) {
       setOrdersList(orders);
       const successOrders = orders.filter(o => o.status === 'success');
-      setAnalytics({
+      // FIX 2: Do NOT use Math.random(). liveVisitors is now set by
+      // the Supabase Presence subscription in setupRealtimeSubscriptions().
+      setAnalytics((prev: any) => ({
+        ...prev,
         totalOrders: successOrders.length,
         totalRevenue: successOrders.reduce((sum, o) => sum + Number(o.amount), 0),
-        liveVisitors: Math.floor(Math.random() * 10) + 1,
-      });
+      }));
     }
-    setLoadingOrders(false);
+
+    if (isManualRefresh) setIsRefreshing(false);
+    else setLoadingOrders(false);
+  };
+
+  const setupRealtimeSubscriptions = () => {
+    // ── FIX 3: Realtime Subscription for Orders ──────────────────
+    // Whenever a new row is INSERTed into 'orders', re-fetch analytics.
+    supabase
+      .channel("orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          console.log("[Realtime] New order received:", payload.new);
+          fetchAnalytics(); // Re-fetch to get updated totals
+        }
+      )
+      .subscribe();
+
+    // ── FIX 4: Supabase Presence for Live Visitors ───────────────
+    // The VisitorTracker component (in layout.tsx) tracks ALL users.
+    // Here in the dashboard, we SUBSCRIBE to that same channel and
+    // count the members to get the real live visitor count.
+    const presenceChannel = supabase.channel("live_visitors");
+    presenceChannelRef.current = presenceChannel;
+
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        // state() returns all current presence keys
+        const state = presenceChannel.presenceState();
+        const liveCount = Object.keys(state).length;
+        console.log("[Presence] Live visitors:", liveCount);
+        setAnalytics((prev: any) => ({ ...prev, liveVisitors: liveCount }));
+      })
+      .on("presence", { event: "join" }, ({ newPresences }) => {
+        console.log("[Presence] User joined:", newPresences);
+      })
+      .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        console.log("[Presence] User left:", leftPresences);
+      })
+      .subscribe();
   };
 
   const handleUpdateStock = async (id: number, currentStock: number, delta: number) => {
@@ -244,11 +310,28 @@ export default function MalikDashboard() {
     <div className="min-h-screen bg-[#F9F9F9] p-6 sm:p-10 lg:p-20">
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <h1 className="text-4xl font-black tracking-tight text-zinc-900">Malik Dashboard</h1>
-          <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            Live: {analytics.liveVisitors}
+        <div className="flex flex-wrap justify-between items-center mb-12 gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-zinc-900">Malik Dashboard</h1>
+            {fetchError && (
+              <p className="text-xs text-red-500 mt-2 font-medium">⚠️ Error: {fetchError}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Manual Refresh Button */}
+            <button
+              onClick={() => fetchAnalytics(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-full text-xs font-bold transition-all"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+            {/* Live Visitors (real Presence count) */}
+            <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              Live: {analytics.liveVisitors}
+            </div>
           </div>
         </div>
 
