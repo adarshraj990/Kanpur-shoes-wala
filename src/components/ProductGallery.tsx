@@ -88,25 +88,31 @@ export default function ProductGallery() {
             </motion.p>
           </div>
 
-          <div className="relative w-full md:w-[320px] group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280] group-focus-within:text-[#FF4500] transition-colors">
-              <Search className="w-4 h-4" />
+          <div className="relative w-full md:w-[350px] group">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#6B7280] group-focus-within:text-[#FF4500] transition-colors">
+              <Search className="w-4.5 h-4.5" />
             </div>
             <input
               type="text"
-              placeholder="Search shoes..."
+              placeholder="Search premium footwear..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-10 py-3.5 bg-[#F8F8F8] border border-[#E5E7EB] rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF4500] focus:border-transparent transition-all text-sm font-medium text-[#1A1A1A] placeholder:text-[#6B7280]"
+              className="w-full pl-13 pr-12 py-4 bg-white border border-[#E5E7EB] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF4500]/20 focus:border-[#FF4500] transition-all text-sm font-medium text-[#1A1A1A] placeholder:text-[#6B7280]/60 shadow-sm group-hover:shadow-md"
             />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#FF4500] transition-colors min-h-0 min-w-0 w-auto h-auto"
-              >
-                <X className="w-4 h-4" />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="p-1.5 text-[#6B7280] hover:text-[#FF4500] transition-colors rounded-full hover:bg-orange-50 min-h-0 min-w-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <div className="w-[1px] h-4 bg-[#E5E7EB] mx-1" />
+              <button className="p-1.5 text-[#1A1A1A] hover:text-[#FF4500] transition-colors min-h-0 min-w-0">
+                <SlidersHorizontal className="w-4 h-4" />
               </button>
-            )}
+            </div>
           </div>
         </div>
 
