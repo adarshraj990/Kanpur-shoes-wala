@@ -40,7 +40,7 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as any }}
       className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:border-[#FF4500]/40 hover:shadow-lg hover:shadow-orange-100/60 transition-all duration-400"
     >
       {/* ── Image ── */}
