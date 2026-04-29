@@ -1,575 +1,234 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { 
-  Check, Loader2, Image as ImageIcon, 
-  Trash2, Plus, Minus, Package, LayoutGrid,
-  TrendingUp, ShoppingCart, DollarSign, Activity,
-  Printer, Tag, FileText, User, MapPin, Phone,
-  LogOut, BarChart3, ArrowUpRight, Search, 
-  ChevronRight, Settings, Bell
-} from "lucide-react";
+import { Check, Loader2, Image as ImageIcon, Trash2, Plus, Minus, Package, LayoutGrid, ShoppingCart, Printer, User, MapPin, Phone, LogOut, BarChart3, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 
 const ADMIN_EMAILS = ["bhaikumarark99@gmail.com", "adarshfouryt@gmail.com"];
 const CATEGORIES = ["Premium Shoes", "Sneakers", "Chelsea Boots", "Slides & Sandals", "Running & Sports", "Casual Wear"];
 
-type Tab = "overview" | "products" | "inventory" | "orders" | "settings";
+type Tab = "overview" | "products" | "inventory" | "orders";
 
 export default function MalikDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [loading, setLoading] = useState(true);
-  
-  // Product Form State
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [detailedDescription, setDetailedDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("Premium Shoes");
-  const [stock, setStock] = useState(10);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  // Data State
+  const [name, setName] = useState(""); const [description, setDescription] = useState(""); const [detailedDescription, setDetailedDescription] = useState(""); const [price, setPrice] = useState(""); const [category, setCategory] = useState("Premium Shoes"); const [stock, setStock] = useState(10); const [imageUrls, setImageUrls] = useState<string[]>([]); const [uploading, setUploading] = useState(false); const [saving, setSaving] = useState(false); const [success, setSuccess] = useState(false);
   const [shoesList, setShoesList] = useState<any[]>([]);
-  const [ordersList, setOrdersList] = useState<any[]>([]);
-  const [analytics, setAnalytics] = useState({ 
-    totalOrders: 0, 
-    totalRevenue: 0, 
-    totalProducts: 0,
-    averageOrder: 0
-  });
-  
+  const [loadingShoes, setLoadingShoes] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [analytics, setAnalytics] = useState({ totalOrders: 0, totalRevenue: 0, totalProducts: 0 });
+  const [ordersList, setOrdersList] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
-
   const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-        router.push("/");
-      } else {
-        refreshData();
-      }
-    }
+    if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email || ""))) router.push("/");
+    else { fetchAnalytics(); fetchShoes(); }
   }, [user, authLoading]);
 
-  const refreshData = async () => {
-    setLoading(true);
-    await Promise.all([fetchShoes(), fetchOrders()]);
-    setLoading(false);
-  };
+  const fetchShoes = async () => { setLoadingShoes(true); const { data } = await supabase.from("shoes").select("*").order("created_at", { ascending: false }); if (data) setShoesList(data); setLoadingShoes(false); };
+  const fetchAnalytics = async () => { setLoadingOrders(true); const { data: orders } = await supabase.from("orders").select("*, shoes(name)").order("created_at", { ascending: false }); const { count } = await supabase.from("shoes").select("*", { count: "exact", head: true }); if (orders) { setOrdersList(orders); const s = orders.filter(o => o.status === "success"); setAnalytics({ totalOrders: s.length, totalRevenue: s.reduce((a, o) => a + Number(o.amount), 0), totalProducts: count || 0 }); } setLoadingOrders(false); };
+  const handleUpdateStock = async (id: number, cur: number, delta: number) => { const ns = Math.max(0, cur + delta); await supabase.from("shoes").update({ stock: ns }).eq("id", id); setShoesList(p => p.map(s => s.id === id ? { ...s, stock: ns } : s)); };
+  const handleDeleteProduct = async (id: number) => { const { error } = await supabase.from("shoes").delete().eq("id", id); if (!error) { setShoesList(p => p.filter(s => s.id !== id)); setDeleteId(null); } };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const files = Array.from(e.target.files || []); if (!files.length) return; setUploading(true); try { const urls = await Promise.all(files.map(async f => { const fd = new FormData(); fd.append("file", f); fd.append("upload_preset", UPLOAD_PRESET!); const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd }); return (await r.json()).secure_url; })); setImageUrls(p => [...p, ...urls.filter(Boolean)]); } finally { setUploading(false); } };
+  const handleSaveProduct = async () => { const np = parseFloat(price); if (!name || !imageUrls.length || isNaN(np)) return; setSaving(true); try { const { error } = await supabase.from("shoes").insert([{ name, description, detailed_description: detailedDescription, price: np, category, stock, image_url: imageUrls[0], image_urls: imageUrls, created_at: new Date().toISOString() }]); if (error) throw error; setSuccess(true); setTimeout(() => setSuccess(false), 3000); setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice(""); setCategory("Premium Shoes"); setStock(10); fetchShoes(); fetchAnalytics(); } catch (e: any) { alert(e.message); } finally { setSaving(false); } };
+  const generateShippingLabel = (order: any) => { const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a6" }); const m = 5, w = 95, h = 138; doc.setLineWidth(1.5); doc.rect(m, m, w, h); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("KANPUR SHOES WALA", 52.5, 15, { align: "center" }); doc.setLineWidth(0.5); doc.line(m + 5, 18, 100, 18); doc.setFontSize(10); doc.text("TO:", m + 5, 28); doc.setFontSize(12); doc.text(order.customer_name?.toUpperCase() || "N/A", m + 5, 35); doc.setFontSize(9); doc.setFont("helvetica", "normal"); const al = doc.splitTextToSize(`${order.address || ""}, ${order.city || ""} - ${order.pincode || ""}`, 70); doc.text(al, m + 5, 42); doc.setFont("helvetica", "bold"); doc.text(`Ph: ${order.phone || "N/A"}`, m + 5, 42 + al.length * 5); doc.line(m + 2, 65, 100, 65); doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.text("FROM: KANPUR SHOES WALA, Kanpur, UP - 208001", m + 5, 72); doc.setFont("helvetica", "bold"); doc.text(`ORDER: #${order.id.toString().slice(-6).toUpperCase()}`, m + 5, 85); doc.setFont("helvetica", "normal"); doc.text(`Item: ${order.shoes?.name || "Premium Shoe"}`, m + 5, 92); doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, m + 5, 99); doc.save(`label_${order.id}.pdf`); };
 
-  const fetchShoes = async () => {
-    const { data } = await supabase.from("shoes").select("*").order("created_at", { ascending: false });
-    if (data) setShoesList(data);
-  };
-
-  const fetchOrders = async () => {
-    const { data: orders } = await supabase.from("orders").select("*, shoes(name)").order("created_at", { ascending: false });
-    if (orders) {
-      setOrdersList(orders);
-      const successOrders = orders.filter(o => o.status === "success");
-      const rev = successOrders.reduce((a, o) => a + Number(o.amount), 0);
-      setAnalytics({
-        totalOrders: successOrders.length,
-        totalRevenue: rev,
-        totalProducts: shoesList.length,
-        averageOrder: successOrders.length > 0 ? rev / successOrders.length : 0
-      });
-    }
-  };
-
-  const handleUpdateStock = async (id: number, cur: number, delta: number) => {
-    const ns = Math.max(0, cur + delta);
-    await supabase.from("shoes").update({ stock: ns }).eq("id", id);
-    setShoesList(p => p.map(s => s.id === id ? { ...s, stock: ns } : s));
-  };
-
-  const handleDeleteProduct = async (id: number) => {
-    const { error } = await supabase.from("shoes").delete().eq("id", id);
-    if (!error) {
-      setShoesList(p => p.filter(s => s.id !== id));
-      setDeleteId(null);
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    setUploading(true);
-    try {
-      const urls = await Promise.all(files.map(async f => {
-        const fd = new FormData();
-        fd.append("file", f);
-        fd.append("upload_preset", UPLOAD_PRESET!);
-        const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
-        const d = await r.json();
-        return d.secure_url;
-      }));
-      setImageUrls(p => [...p, ...urls.filter(Boolean)]);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSaveProduct = async () => {
-    const np = parseFloat(price);
-    if (!name || !imageUrls.length || isNaN(np)) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("shoes").insert([{
-        name, description, detailed_description: detailedDescription,
-        price: np, category, stock, image_url: imageUrls[0], image_urls: imageUrls,
-        created_at: new Date().toISOString()
-      }]);
-      if (error) throw error;
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-      setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice(""); setCategory("Premium Shoes"); setStock(10);
-      fetchShoes();
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const generateShippingLabel = (order: any) => {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a6" });
-    doc.setLineWidth(1); doc.rect(5, 5, 95, 138);
-    doc.setFontSize(16); doc.setFont("helvetica", "bold");
-    doc.text("KANPUR SHOES WALA", 52.5, 15, { align: "center" });
-    doc.setLineWidth(0.5); doc.line(10, 20, 95, 20);
-    doc.setFontSize(10); doc.text("SHIP TO:", 10, 30);
-    doc.setFontSize(12); doc.text(order.customer_name?.toUpperCase() || "CUSTOMER", 10, 38);
-    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-    const al = doc.splitTextToSize(`${order.address || ""}, ${order.city || ""} - ${order.pincode || ""}`, 80);
-    doc.text(al, 10, 45);
-    doc.setFont("helvetica", "bold"); doc.text(`PHONE: ${order.phone || "N/A"}`, 10, 45 + al.length * 5 + 5);
-    doc.line(10, 80, 95, 80);
-    doc.setFontSize(8); doc.text("SENDER: KANPUR SHOES WALA, CIVIL LINES, KANPUR (UP)", 10, 88);
-    doc.setFontSize(14); doc.text(`ORDER ID: #${order.id.toString().slice(-6).toUpperCase()}`, 10, 110);
-    doc.setFontSize(10); doc.text(`ITEM: ${order.shoes?.name || "PREMIUM SHOE"}`, 10, 120);
-    doc.save(`label_${order.id}.pdf`);
-  };
-
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6">
-        <div className="w-16 h-16 rounded-2xl bg-[#FF4F00] flex items-center justify-center animate-pulse shadow-[0_0_40px_rgba(255,79,0,0.3)]">
-          <Zap className="w-8 h-8 text-white fill-white" />
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-white font-black uppercase tracking-[0.3em] text-xs">Authenticating</p>
-          <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-              className="w-full h-full bg-[#FF4F00]" 
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]"><Loader2 className="animate-spin text-white w-8 h-8" /></div>;
 
   const NAV: { id: Tab; label: string; icon: any }[] = [
-    { id: "overview", label: "Insights", icon: BarChart3 },
-    { id: "products", label: "Catalog", icon: Plus },
+    { id: "overview", label: "Overview", icon: BarChart3 },
+    { id: "products", label: "Add Product", icon: Plus },
     { id: "inventory", label: "Inventory", icon: LayoutGrid },
-    { id: "orders", label: "Logistics", icon: ShoppingCart },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
   ];
 
-  return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white flex selection:bg-[#FF4F00]/30">
-      
-      {/* ─────────────────────── LUXURY SIDEBAR ─────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-72 border-r border-white/5 p-8 fixed h-full bg-[#0A0A0A]/80 backdrop-blur-3xl z-50">
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#FF4F00] flex items-center justify-center shadow-lg shadow-orange-900/20">
-              <Package className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-sm font-black tracking-tighter uppercase leading-none">Malik<br /><span className="text-[#FF4F00]">Panel.</span></h1>
-            </div>
-          </div>
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Active Admin</p>
-            <p className="text-xs font-bold truncate text-zinc-300">{user?.email}</p>
-          </div>
-        </div>
+  const inputCls = "w-full px-4 py-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#FF4F00] transition-colors";
 
-        <nav className="flex flex-col gap-2 flex-1">
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white flex">
+      {/* Sidebar */}
+      <aside className="hidden lg:flex flex-col w-64 border-r border-[#1A1A1A] p-6 fixed h-full">
+        <div className="mb-10">
+          <div className="w-10 h-10 rounded-xl bg-[#FF4F00] flex items-center justify-center mb-3">
+            <Package className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-lg font-black tracking-tight">Malik Panel</h1>
+          <p className="text-xs text-zinc-500 mt-1">{user?.email}</p>
+        </div>
+        <nav className="flex flex-col gap-1 flex-1">
           {NAV.map(n => (
-            <button 
-              key={n.id} 
-              onClick={() => setActiveTab(n.id)} 
-              className={`flex items-center justify-between px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-500 group ${
-                activeTab === n.id 
-                  ? "bg-[#FF4F00] text-white shadow-xl shadow-orange-900/20" 
-                  : "text-zinc-500 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <n.icon className={`w-4 h-4 ${activeTab === n.id ? "text-white" : "group-hover:text-[#FF4F00]"} transition-colors`} />
-                {n.label}
-              </div>
-              {activeTab === n.id && <ChevronRight className="w-3 h-3" />}
+            <button key={n.id} onClick={() => setActiveTab(n.id)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all text-left ${activeTab === n.id ? "bg-[#FF4F00] text-white" : "text-zinc-400 hover:text-white hover:bg-[#1A1A1A]"}`}>
+              <n.icon className="w-4 h-4" />{n.label}
             </button>
           ))}
         </nav>
-
-        <div className="mt-auto space-y-4">
-          <button onClick={refreshData} className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-[#FF4F00] hover:bg-orange-500/5 transition-all">
-            <Activity className="w-4 h-4" /> Sync Data
-          </button>
-          <button onClick={signOut} className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all">
-            <LogOut className="w-4 h-4" /> Terminate Session
-          </button>
-        </div>
+        <button onClick={signOut} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-zinc-500 hover:text-red-400 hover:bg-[#1A1A1A] transition-all">
+          <LogOut className="w-4 h-4" />Sign Out
+        </button>
       </aside>
 
-      {/* ─────────────────────── MAIN CONTENT ─────────────────────── */}
-      <main className="flex-1 lg:ml-72 p-6 lg:p-12">
-        
-        {/* Header Strip */}
-        <header className="flex justify-between items-center mb-16">
-          <div>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF4F00] mb-2">Workspace / {activeTab}</h2>
-            <h3 className="text-3xl font-black tracking-tighter text-white">
-              {activeTab === "overview" && "Executive Insights"}
-              {activeTab === "products" && "Curate Collection"}
-              {activeTab === "inventory" && "Stock Matrix"}
-              {activeTab === "orders" && "Global Logistics"}
-            </h3>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="p-3 rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all">
-              <Bell className="w-5 h-5" />
-            </button>
-            <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#FF4F00] to-orange-400 border-2 border-white/10 shadow-lg" />
-          </div>
-        </header>
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A] border-b border-[#1A1A1A] px-4 py-3 flex items-center justify-between">
+        <span className="font-black text-sm">Malik Panel</span>
+        <div className="flex gap-1">{NAV.map(n => (<button key={n.id} onClick={() => setActiveTab(n.id)} className={`p-2 rounded-lg transition-all ${activeTab === n.id ? "bg-[#FF4F00]" : "text-zinc-500"}`}><n.icon className="w-4 h-4" /></button>))}</div>
+      </div>
 
-        {/* TAB: OVERVIEW */}
+      {/* Main */}
+      <main className="flex-1 lg:ml-64 p-6 lg:p-10 pt-20 lg:pt-10">
+
+        {/* OVERVIEW */}
         {activeTab === "overview" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-            
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div>
+              <h2 className="text-3xl font-black tracking-tight">Overview</h2>
+              <p className="text-zinc-500 mt-1">Kanpur Shoes Wala — Business Dashboard</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { label: "Gross Revenue", value: `₹${analytics.totalRevenue.toLocaleString()}`, icon: DollarSign, color: "#FF4F00", trend: "+12.5%" },
-                { label: "Successful Orders", value: analytics.totalOrders, icon: ShoppingCart, color: "#22C55E", trend: "+8.2%" },
-                { label: "Active SKUs", value: shoesList.length, icon: Package, color: "#3B82F6", trend: "Stable" },
-                { label: "Avg. Order Value", value: `₹${Math.round(analytics.averageOrder).toLocaleString()}`, icon: TrendingUp, color: "#A855F7", trend: "+4.1%" },
+                { label: "Total Revenue", value: `₹${analytics.totalRevenue.toLocaleString()}`, color: "#FF4F00", sub: "All time" },
+                { label: "Orders Placed", value: analytics.totalOrders, color: "#22C55E", sub: "Successful" },
+                { label: "Products Live", value: analytics.totalProducts, color: "#3B82F6", sub: "In catalog" },
               ].map(s => (
-                <div key={s.label} className="group relative bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 hover:bg-white/[0.04] transition-all duration-500 overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <s.icon className="w-24 h-24" />
+                <div key={s.label} className="bg-[#111] border border-[#1A1A1A] rounded-2xl p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">{s.label}</p>
+                    <ArrowUpRight className="w-4 h-4" style={{ color: s.color }} />
                   </div>
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="p-3 rounded-2xl bg-white/5 text-zinc-400">
-                      <s.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-2 py-1 rounded-lg">{s.trend}</span>
-                  </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">{s.label}</p>
-                  <p className="text-4xl font-black tracking-tighter" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-4xl font-black" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-xs text-zinc-600 mt-2">{s.sub}</p>
                 </div>
               ))}
             </div>
-
-            {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10">
-                <div className="flex justify-between items-center mb-10">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-zinc-300">Logistics Velocity</h4>
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#FF4F00]" />
-                    <div className="w-3 h-3 rounded-full bg-white/10" />
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-2xl p-6">
+              <h3 className="font-black mb-4 text-sm uppercase tracking-widest text-zinc-400">Recent Orders</h3>
+              <div className="space-y-3">
+                {ordersList.slice(0, 5).map(o => (
+                  <div key={o.id} className="flex items-center justify-between py-3 border-b border-[#1A1A1A] last:border-0">
+                    <div><p className="text-sm font-bold">{o.customer_name || "Customer"}</p><p className="text-xs text-zinc-500">#{o.id.toString().slice(-6).toUpperCase()}</p></div>
+                    <div className="text-right"><p className="text-sm font-black text-[#FF4F00]">₹{o.amount}</p><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${o.status === "success" ? "bg-green-500/10 text-green-500" : "bg-orange-500/10 text-orange-500"}`}>{o.status}</span></div>
                   </div>
-                </div>
-                <div className="h-[240px] flex items-end gap-3 justify-between">
-                  {[40, 70, 45, 90, 65, 80, 55, 95, 75, 60, 85, 100].map((h, i) => (
-                    <motion.div 
-                      key={i}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${h}%` }}
-                      transition={{ delay: i * 0.05, duration: 1 }}
-                      className="flex-1 bg-gradient-to-t from-[#FF4F00]/20 to-[#FF4F00] rounded-t-lg relative group cursor-pointer"
-                    >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                        {h}k
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="lg:col-span-4 bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8">
-                <h4 className="text-sm font-black uppercase tracking-widest text-zinc-300 mb-8">Recent Activity</h4>
-                <div className="space-y-6">
-                  {ordersList.slice(0, 5).map((o, i) => (
-                    <div key={o.id} className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF4F00]/10 transition-colors">
-                        <ShoppingCart className="w-5 h-5 text-zinc-500 group-hover:text-[#FF4F00]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-zinc-200 truncate">{o.customer_name || "New Client"}</p>
-                        <p className="text-[10px] text-zinc-600 font-bold tracking-widest">#{o.id.toString().slice(-6).toUpperCase()}</p>
-                      </div>
-                      <p className="text-xs font-black text-[#FF4F00]">₹{o.amount}</p>
-                    </div>
-                  ))}
-                </div>
+                ))}
+                {ordersList.length === 0 && <p className="text-zinc-600 text-sm py-6 text-center">No orders yet</p>}
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* TAB: PRODUCTS (CURATE) */}
+        {/* ADD PRODUCT */}
         {activeTab === "products" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-8">
-                <div className="space-y-6 bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem]">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Essential Data</h4>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-2">Shoe Name</label>
-                      <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kanpur Air Elite" className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-sm font-bold focus:border-[#FF4F00] transition-all outline-none" />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 max-w-2xl">
+            <div>
+              <h2 className="text-3xl font-black tracking-tight">Add Product</h2>
+              <p className="text-zinc-500 mt-1">List a new shoe to the collection</p>
+            </div>
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-2xl p-6 sm:p-8 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="Kanpur Air V2" className={inputCls} /></div>
+                <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Price (₹)</label><input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="799" className={inputCls} /></div>
+                <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Category</label><select value={category} onChange={e => setCategory(e.target.value)} className={inputCls}>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Initial Stock</label><input type="number" value={stock} onChange={e => setStock(parseInt(e.target.value))} className={inputCls} /></div>
+              </div>
+              <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Short Tagline</label><input value={description} onChange={e => setDescription(e.target.value)} placeholder="Handcrafted in Kanpur" className={inputCls} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Detailed Description</label><textarea value={detailedDescription} onChange={e => setDetailedDescription(e.target.value)} rows={3} className={inputCls + " resize-none"} /></div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Product Images</label>
+                <div className="grid grid-cols-4 gap-3">
+                  {imageUrls.map((url, i) => (
+                    <div key={url} className="relative aspect-square rounded-xl overflow-hidden border border-[#2A2A2A]">
+                      <img src={url} className="w-full h-full object-cover" />
+                      <button onClick={() => setImageUrls(p => p.filter((_, j) => j !== i))} className="absolute top-1.5 right-1.5 p-1 bg-black/70 text-red-400 rounded-lg"><Trash2 className="w-3 h-3" /></button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-2">Market Price (₹)</label>
-                        <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="1499" className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-sm font-black text-[#FF4F00] focus:border-[#FF4F00] transition-all outline-none" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-2">Inventory Stock</label>
-                        <input type="number" value={stock} onChange={e => setStock(parseInt(e.target.value))} className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-sm font-bold focus:border-[#FF4F00] transition-all outline-none" />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-600 ml-2">Collection Category</label>
-                      <select value={category} onChange={e => setCategory(e.target.value)} className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-sm font-bold focus:border-[#FF4F00] transition-all outline-none appearance-none">
-                        {CATEGORIES.map(c => <option key={c} value={c} className="bg-zinc-900">{c}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6 bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem]">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Narrative & Story</h4>
-                  <div className="space-y-4">
-                    <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Short Tagline (e.g. Kanpur Heritage Leather)" className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-medium focus:border-[#FF4F00] transition-all outline-none" />
-                    <textarea value={detailedDescription} onChange={e => setDetailedDescription(e.target.value)} rows={4} placeholder="Full product story and materials detail..." className="w-full px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-medium leading-relaxed focus:border-[#FF4F00] transition-all outline-none resize-none" />
-                  </div>
+                  ))}
+                  <label className="relative aspect-square rounded-xl border-2 border-dashed border-[#2A2A2A] flex flex-col items-center justify-center hover:border-[#FF4F00] cursor-pointer transition-colors">
+                    {uploading ? <Loader2 className="animate-spin text-zinc-600" /> : <ImageIcon className="w-5 h-5 text-zinc-600" />}
+                    <span className="text-[9px] text-zinc-600 mt-1">Upload</span>
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="absolute inset-0 opacity-0 cursor-pointer" />
+                  </label>
                 </div>
               </div>
-
-              <div className="space-y-8">
-                <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] h-full flex flex-col">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-6">Gallery Asset Management</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    {imageUrls.map((url, i) => (
-                      <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} key={url} className="relative aspect-square rounded-[2rem] overflow-hidden border border-white/10 group">
-                        <img src={url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                        <button onClick={() => setImageUrls(p => p.filter((_, j) => j !== i))} className="absolute top-3 right-3 p-2 bg-black/60 backdrop-blur-md text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </motion.div>
-                    ))}
-                    {imageUrls.length < 4 && (
-                      <label className="relative aspect-square rounded-[2rem] border-2 border-dashed border-white/10 flex flex-col items-center justify-center hover:border-[#FF4F00] hover:bg-white/[0.02] cursor-pointer transition-all group">
-                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#FF4F00]/20 transition-all">
-                          {uploading ? <Loader2 className="animate-spin text-[#FF4F00]" /> : <ImageIcon className="w-6 h-6 text-zinc-600 group-hover:text-[#FF4F00]" />}
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mt-4 group-hover:text-[#FF4F00]">Add Frame</span>
-                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      </label>
-                    )}
-                  </div>
-
-                  <button 
-                    onClick={handleSaveProduct} 
-                    disabled={saving || !imageUrls.length || !name} 
-                    className={`mt-auto w-full py-6 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all duration-500 active:scale-95 disabled:opacity-30 ${
-                      success 
-                        ? "bg-green-500 text-white shadow-xl shadow-green-900/20" 
-                        : "bg-[#FF4F00] text-white shadow-2xl shadow-orange-900/40 hover:bg-[#E64600]"
-                    }`}
-                  >
-                    {saving ? <Loader2 className="animate-spin" /> : success ? <><Check className="w-5 h-5" /> In Catalog</> : <><Tag className="w-5 h-5" /> Deploy Product</>}
-                  </button>
-                </div>
-              </div>
+              <button onClick={handleSaveProduct} disabled={saving || !imageUrls.length || !name} className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${success ? "bg-green-500" : "bg-[#FF4F00] hover:bg-[#E64600]"} disabled:opacity-40`}>
+                {saving ? <Loader2 className="animate-spin w-5 h-5" /> : success ? <><Check className="w-5 h-5" />Saved!</> : <><Package className="w-5 h-5" />Save Product</>}
+              </button>
             </div>
           </motion.div>
         )}
 
-        {/* TAB: INVENTORY */}
+        {/* INVENTORY */}
         {activeTab === "inventory" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.02] border border-white/5 rounded-[3rem] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.01]">
-                    {["The Shoe", "Category", "Market Value", "Stock Matrix", "Control"].map(h => (
-                      <th key={h} className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {shoesList.map(shoe => (
-                    <tr key={shoe.id} className="group hover:bg-white/[0.02] transition-colors">
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-6">
-                          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
-                            <img src={shoe.image_url} className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="font-black text-sm text-white tracking-tight">{shoe.name}</p>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">ID: #{shoe.id}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                          {shoe.category}
-                        </span>
-                      </td>
-                      <td className="px-10 py-8">
-                        <p className="text-sm font-black text-[#FF4F00]">₹{shoe.price.toLocaleString()}</p>
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-4">
-                          <button onClick={() => handleUpdateStock(shoe.id, shoe.stock, -1)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[#FF4F00]/20 transition-all active:scale-90">
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className={`text-sm font-black w-10 text-center ${shoe.stock < 5 ? "text-red-500 animate-pulse" : "text-white"}`}>
-                            {shoe.stock}
-                          </span>
-                          <button onClick={() => handleUpdateStock(shoe.id, shoe.stock, 1)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center hover:bg-green-500/20 transition-all active:scale-90">
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <button onClick={() => setDeleteId(shoe.id)} className="p-4 rounded-2xl text-zinc-600 hover:text-red-400 hover:bg-red-400/5 transition-all">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div><h2 className="text-3xl font-black tracking-tight">Inventory</h2><p className="text-zinc-500 mt-1">{shoesList.length} products in catalog</p></div>
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead><tr className="border-b border-[#1A1A1A]">{["Product", "Category", "Price", "Stock", ""].map(h => <th key={h} className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-[#1A1A1A]">
+                    {loadingShoes ? <tr><td colSpan={5} className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-zinc-600" /></td></tr>
+                      : shoesList.map(shoe => (
+                        <tr key={shoe.id} className="hover:bg-[#151515] transition-colors">
+                          <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl overflow-hidden bg-[#1A1A1A] flex-shrink-0"><img src={shoe.image_url} className="w-full h-full object-cover" /></div><p className="font-bold text-sm text-white leading-tight">{shoe.name}</p></div></td>
+                          <td className="px-6 py-4"><span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 bg-[#1A1A1A] px-2 py-1 rounded-lg">{shoe.category}</span></td>
+                          <td className="px-6 py-4 font-black text-[#FF4F00] text-sm">₹{shoe.price}</td>
+                          <td className="px-6 py-4"><div className="flex items-center gap-2"><button onClick={() => handleUpdateStock(shoe.id, shoe.stock, -1)} className="w-7 h-7 bg-[#1A1A1A] hover:bg-[#2A2A2A] rounded-lg flex items-center justify-center transition-colors"><Minus className="w-3 h-3" /></button><span className={`text-sm font-black w-8 text-center ${shoe.stock < 5 ? "text-red-400" : "text-white"}`}>{shoe.stock}</span><button onClick={() => handleUpdateStock(shoe.id, shoe.stock, 1)} className="w-7 h-7 bg-[#1A1A1A] hover:bg-[#2A2A2A] rounded-lg flex items-center justify-center transition-colors"><Plus className="w-3 h-3" /></button></div></td>
+                          <td className="px-6 py-4 text-right"><button onClick={() => setDeleteId(shoe.id)} className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button></td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </motion.div>
         )}
 
-        {/* TAB: ORDERS */}
+        {/* ORDERS */}
         {activeTab === "orders" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.02] border border-white/5 rounded-[3rem] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.01]">
-                    {["Order Asset", "Recipient Detail", "Investment", "Logistic Status", "Terminal"].map(h => (
-                      <th key={h} className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {ordersList.map(order => (
-                    <tr key={order.id} className="group hover:bg-white/[0.02] transition-colors">
-                      <td className="px-10 py-8">
-                        <div>
-                          <p className="text-sm font-black text-white tracking-tight">{order.shoes?.name || "Premium Item"}</p>
-                          <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">Order #{order.id.toString().slice(-6).toUpperCase()}</p>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <User className="w-3 h-3 text-zinc-600" />
-                            <p className="text-xs font-bold text-zinc-300">{order.customer_name}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-3 h-3 text-zinc-600" />
-                            <p className="text-[10px] text-zinc-500 font-medium">{order.city || "Kanpur"}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8 font-black text-sm text-[#FF4F00]">₹{order.amount.toLocaleString()}</td>
-                      <td className="px-10 py-8">
-                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                          order.status === "success" 
-                            ? "bg-green-500/10 text-green-400 border-green-500/20" 
-                            : "bg-orange-500/10 text-orange-400 border-orange-500/20"
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${order.status === "success" ? "bg-green-400" : "bg-orange-400"}`} />
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-10 py-8">
-                        <button 
-                          onClick={() => generateShippingLabel(order)} 
-                          className="flex items-center gap-3 px-6 py-3 bg-[#FF4F00]/5 hover:bg-[#FF4F00] text-[#FF4F00] hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-lg shadow-orange-900/10 border border-orange-500/10"
-                        >
-                          <Printer className="w-4 h-4" /> Label
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {ordersList.length === 0 && (
-                    <tr><td colSpan={5} className="py-32 text-center text-zinc-600 font-black uppercase tracking-[0.3em] text-xs">Awaiting Global Orders</td></tr>
-                  )}
-                </tbody>
-              </table>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div><h2 className="text-3xl font-black tracking-tight">Orders</h2><p className="text-zinc-500 mt-1">{ordersList.length} total orders</p></div>
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead><tr className="border-b border-[#1A1A1A]">{["Order", "Customer", "Amount", "Status", "Action"].map(h => <th key={h} className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-[#1A1A1A]">
+                    {loadingOrders ? <tr><td colSpan={5} className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-zinc-600" /></td></tr>
+                      : ordersList.map(order => (
+                        <tr key={order.id} className="hover:bg-[#151515] transition-colors">
+                          <td className="px-6 py-4"><p className="text-sm font-bold text-white">{order.shoes?.name || "Shoe"}</p><p className="text-[10px] font-black text-zinc-500 mt-1">#{order.id.toString().slice(-6).toUpperCase()}</p></td>
+                          <td className="px-6 py-4 space-y-1"><p className="text-sm font-bold flex items-center gap-1.5"><User className="w-3 h-3 text-zinc-600" />{order.customer_name}</p><p className="text-[10px] text-zinc-500 flex items-center gap-1.5"><Phone className="w-3 h-3 text-zinc-600" />{order.phone}</p><p className="text-[10px] text-zinc-500 flex items-center gap-1.5"><MapPin className="w-3 h-3 text-zinc-600" />{order.city}</p></td>
+                          <td className="px-6 py-4 font-black text-[#FF4F00] text-sm">₹{order.amount}</td>
+                          <td className="px-6 py-4"><span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${order.status === "success" ? "bg-green-500/10 text-green-400" : "bg-orange-500/10 text-orange-400"}`}>{order.status}</span></td>
+                          <td className="px-6 py-4"><button onClick={() => generateShippingLabel(order)} className="flex items-center gap-2 px-3 py-2 bg-[#1A1A1A] hover:bg-[#FF4F00] text-zinc-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"><Printer className="w-3.5 h-3.5" />Label</button></td>
+                        </tr>
+                      ))}
+                    {ordersList.length === 0 && !loadingOrders && <tr><td colSpan={5} className="py-20 text-center text-zinc-600 text-sm">No orders yet</td></tr>}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </motion.div>
         )}
       </main>
 
-      {/* Luxury Delete Confirmation */}
+      {/* Delete Modal */}
       <AnimatePresence>
         {deleteId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-[#0D0D0D] border border-white/10 p-10 rounded-[3rem] max-w-sm w-full text-center shadow-2xl">
-              <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
-                <Trash2 className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-black mb-4 tracking-tighter">Terminate Listing?</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed mb-10">This action is irreversible. The asset will be permanently removed from the Kanpur Shoes catalog.</p>
-              <div className="flex gap-4">
-                <button onClick={() => setDeleteId(null)} className="flex-1 py-5 bg-white/5 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
-                <button onClick={() => handleDeleteProduct(deleteId)} className="flex-1 py-5 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-red-900/30">Delete</button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-[#111] border border-[#2A2A2A] p-8 rounded-2xl max-w-sm w-full text-center">
+              <div className="w-14 h-14 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-5"><Trash2 className="w-7 h-7" /></div>
+              <h3 className="text-xl font-black mb-2">Delete Product?</h3>
+              <p className="text-zinc-500 text-sm mb-6">This will permanently remove this item from Kanpur Shoes Wala.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteId(null)} className="flex-1 py-3 bg-[#1A1A1A] text-white rounded-xl font-bold text-sm hover:bg-[#2A2A2A] transition-colors">Cancel</button>
+                <button onClick={() => handleDeleteProduct(deleteId)} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors">Delete</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-// Simple Zap icon component since lucide-react Zap might be different or for consistent fill
-function Zap({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
   );
 }
