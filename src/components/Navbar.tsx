@@ -54,7 +54,7 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
               className="text-lg sm:text-xl font-black tracking-tight text-[#121212] uppercase leading-none"
               style={{ fontFamily: "var(--font-montserrat)" }}
             >
-              Kanpur<span className="text-[#FF4F00]">.</span>Shoes
+              Kanpur Shoes Wala
             </span>
           </Link>
 

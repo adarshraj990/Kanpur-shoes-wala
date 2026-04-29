@@ -19,6 +19,7 @@ import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import AuthModal from "@/components/AuthModal";
 import ReviewSection from "@/components/ReviewSection";
+import SuggestedProducts from "@/components/SuggestedProducts";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -198,6 +199,9 @@ export default function ProductDetailPage() {
 
         {/* Reviews Section */}
         <ReviewSection productId={id as string} />
+
+        {/* Suggested Products Section */}
+        <SuggestedProducts currentId={id as string} category={shoe.category} />
       </div>
     </main>
   );
