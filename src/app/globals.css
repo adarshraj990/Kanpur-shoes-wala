@@ -1,34 +1,107 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #09090b;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --color-brand: #FF4500;
+  --color-brand-light: #FF6B35;
+  --color-bg: #FFFFFF;
+  --color-text: #1A1A1A;
+  --color-muted: #6B7280;
+  --color-surface: #F8F8F8;
+  --color-border: #E5E7EB;
 }
 
-@layer base {
-  body {
-    @apply bg-white text-zinc-900 antialiased;
-    font-feature-settings: "ss01", "ss03", "cv08", "cv11";
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom Selection */
+body {
+  font-family: var(--font-inter);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}
+
+.font-inter {
+  font-family: var(--font-inter);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Brand orange utilities */
+.text-brand { color: #FF4500; }
+.bg-brand { background-color: #FF4500; }
+.border-brand { border-color: #FF4500; }
+.hover\:bg-brand:hover { background-color: #FF4500; }
+.hover\:text-brand:hover { color: #FF4500; }
+
+/* CTA Button - Electric Orange */
+.btn-brand {
+  background-color: #FF4500;
+  color: #FFFFFF;
+  font-family: var(--font-montserrat);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-brand:hover {
+  background-color: #E63E00;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.35);
+}
+.btn-brand:active {
+  transform: translateY(0);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A1A1A;
+  border-radius: 2px;
+}
+
+/* Mobile touch target minimum */
+button, a {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Override for inline/block elements */
+p a, li a, nav a, footer a {
+  min-height: unset;
+  min-width: unset;
+  display: inline;
+}
+
+/* Selection color */
 ::selection {
-  background: #09090b;
-  color: #ffffff;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  background: #FF4500;
+  color: white;
 }

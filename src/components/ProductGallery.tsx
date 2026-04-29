@@ -58,42 +58,51 @@ export default function ProductGallery() {
   }
 
   return (
-    <section className="py-20 px-6 sm:px-10 lg:px-20 max-w-[1800px] mx-auto">
-      <div className="flex flex-col mb-16 gap-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+    <section className="py-12 sm:py-20 px-4 sm:px-8 lg:px-12 max-w-[1400px] mx-auto">
+      <div className="flex flex-col mb-10 sm:mb-16 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="max-w-xl">
-            <motion.h2 
+            <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-5xl sm:text-6xl font-black text-zinc-900 tracking-tighter"
+              className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF4500] mb-3"
+              style={{ fontFamily: "var(--font-montserrat)" }}
+            >
+              Handcrafted Collection
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-4xl sm:text-5xl font-black text-[#1A1A1A] tracking-tighter"
+              style={{ fontFamily: "var(--font-montserrat)" }}
             >
               The Collection
             </motion.h2>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="mt-6 text-zinc-500 text-lg font-medium leading-relaxed"
+              className="mt-4 text-[#6B7280] text-base font-medium leading-relaxed"
             >
-              From premium leather shoes to casual slides, find the perfect pair handcrafted for your journey.
+              From premium leather shoes to casual slides, handcrafted for your journey.
             </motion.p>
           </div>
 
-          <div className="relative w-full md:w-[350px] group">
-            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 transition-colors">
-              <Search className="w-5 h-5" />
+          <div className="relative w-full md:w-[320px] group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280] group-focus-within:text-[#FF4500] transition-colors">
+              <Search className="w-4 h-4" />
             </div>
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              placeholder="Search shoes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all font-medium text-zinc-900 placeholder:text-zinc-400 shadow-sm group-hover:bg-white"
+              className="w-full pl-11 pr-10 py-3.5 bg-[#F8F8F8] border border-[#E5E7EB] rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF4500] focus:border-transparent transition-all text-sm font-medium text-[#1A1A1A] placeholder:text-[#6B7280]"
             />
             {searchTerm && (
-              <button 
+              <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-900 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#FF4500] transition-colors min-h-0 min-w-0 w-auto h-auto"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -102,29 +111,30 @@ export default function ProductGallery() {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                selectedCategory === cat 
-                  ? "bg-zinc-900 text-white shadow-lg shadow-zinc-200" 
-                  : "bg-white border border-zinc-100 text-zinc-500 hover:border-zinc-300 hover:text-zinc-900"
+              className={`flex-shrink-0 px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all min-h-[40px] ${
+                selectedCategory === cat
+                  ? "bg-[#FF4500] text-white shadow-lg shadow-orange-200"
+                  : "bg-white border border-[#E5E7EB] text-[#6B7280] hover:border-[#FF4500] hover:text-[#FF4500]"
               }`}
+              style={{ fontFamily: "var(--font-montserrat)" }}
             >
               {cat}
             </button>
           ))}
-          <div className="ml-auto hidden md:block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">
+          <div className="ml-auto hidden md:block text-[10px] font-black uppercase tracking-[0.2em] text-[#6B7280]/50 whitespace-nowrap">
             {filteredShoes.length} results
           </div>
         </div>
       </div>
 
-      <motion.div 
+      <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16"
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-8"
       >
         <AnimatePresence mode="popLayout">
           {filteredShoes.map((shoe) => (
