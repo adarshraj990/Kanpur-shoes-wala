@@ -37,16 +37,16 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as any }}
-      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:border-[#FF4500]/40 hover:shadow-lg hover:shadow-orange-100/60 transition-all duration-400"
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as any }}
+      className="group flex flex-col bg-white rounded-[2rem] overflow-hidden border border-[#F3F4F6] hover:border-[#FF4500]/20 hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 h-full"
     >
-      {/* ── Image ── */}
+      {/* ── Image Container ── */}
       <Link
         href={`/product/${shoe.id}`}
-        className="relative overflow-hidden bg-[#F8F8F8] block aspect-square min-h-0 min-w-0"
+        className="relative overflow-hidden bg-[#F9F9F9] block aspect-[1/1] min-h-0 min-w-0"
       >
         <Image
           src={
@@ -56,63 +56,64 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
           alt={name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform duration-600 ease-in-out group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
 
-        {/* Category badge */}
+        {/* Floating Category Badge */}
         {category && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-[9px] font-black uppercase tracking-widest text-[#1A1A1A] leading-none">
-            {category}
-          </span>
+          <div className="absolute top-4 left-4 z-10">
+            <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-[0.15em] text-[#1A1A1A] shadow-sm">
+              {category}
+            </span>
+          </div>
         )}
       </Link>
 
-      {/* ── Card Body ── */}
-      <div className="flex flex-col gap-3 p-3 sm:p-4">
-        {/* Name + Price */}
-        <div className="flex items-start justify-between gap-2">
-          <h3
-            className="text-sm sm:text-[15px] font-bold text-[#1A1A1A] leading-snug tracking-tight line-clamp-2 flex-1"
-            style={{ fontFamily: "var(--font-montserrat)" }}
-          >
-            {name}
-          </h3>
-          <span
-            className="text-base sm:text-lg font-black text-[#FF4500] whitespace-nowrap leading-none pt-0.5"
-            style={{ fontFamily: "var(--font-montserrat)" }}
-          >
-            ₹{price.toLocaleString()}
-          </span>
+      {/* ── Card Content ── */}
+      <div className="flex flex-col flex-1 p-5 sm:p-6 gap-4">
+        <div className="space-y-1.5 flex-1">
+          <div className="flex justify-between items-start gap-4">
+            <h3
+              className="text-lg sm:text-xl font-bold text-[#1A1A1A] leading-tight tracking-tight line-clamp-2"
+              style={{ fontFamily: "var(--font-montserrat)" }}
+            >
+              {name}
+            </h3>
+            <span
+              className="text-lg sm:text-xl font-black text-[#FF4500] whitespace-nowrap pt-0.5"
+              style={{ fontFamily: "var(--font-montserrat)" }}
+            >
+              ₹{price.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-sm text-[#6B7280] leading-relaxed line-clamp-2 font-medium opacity-80">
+            {description}
+          </p>
         </div>
 
-        {/* Description — hidden on very small screens */}
-        <p className="hidden sm:block text-xs text-[#6B7280] leading-relaxed line-clamp-2">
-          {description}
-        </p>
-
-        {/* ── Dual Buttons ── */}
-        <div className="flex gap-2 mt-1">
-          {/* Add to Bag (Outline) */}
+        {/* ── Action Buttons ── */}
+        <div className="flex gap-3 mt-2">
+          {/* Add Button */}
           <button
             onClick={handleAddToCart}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wide border-2 transition-all duration-250 active:scale-95 min-h-[44px] ${
+            className={`flex-[0.45] flex items-center justify-center gap-2 h-12 sm:h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest border-2 transition-all duration-300 active:scale-95 ${
               added
                 ? "bg-green-500 border-green-500 text-white"
                 : "border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white"
             }`}
             style={{ fontFamily: "var(--font-montserrat)" }}
           >
-            <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{added ? "Added!" : "Add"}</span>
+            <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{added ? "Done" : "Add"}</span>
           </button>
 
-          {/* Buy Now (Solid Orange) */}
+          {/* Buy Now Button */}
           <button
             onClick={handleBuyNow}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wide bg-[#FF4500] text-white border-2 border-[#FF4500] hover:bg-[#E63E00] hover:border-[#E63E00] hover:shadow-md hover:shadow-orange-200 transition-all duration-250 active:scale-95 min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-[#FF4500] text-white border-2 border-[#FF4500] hover:bg-[#E63E00] hover:border-[#E63E00] shadow-[0_8px_20px_rgba(255,69,0,0.2)] hover:shadow-[0_12px_25px_rgba(255,69,0,0.3)] transition-all duration-300 active:scale-95"
             style={{ fontFamily: "var(--font-montserrat)" }}
           >
-            <Zap className="w-3.5 h-3.5 flex-shrink-0 fill-white" />
+            <Zap className="w-4 h-4 flex-shrink-0 fill-white" />
             <span>Buy Now</span>
           </button>
         </div>
