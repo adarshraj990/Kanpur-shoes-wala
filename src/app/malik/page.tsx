@@ -1,17 +1,17 @@
-/* MASTER_LOG - APRIL 29, 2026 
-- Fix 1: Replaced Math.random() liveVisitors with Supabase Realtime Presence.
-- Fix 2: Added Realtime subscription to 'orders' table for live updates.
-- Fix 3: Added error handling to all fetch operations + manual Refresh button.
+/* MASTER_LOG - APRIL 28, 2026 
+- Project Status: Logistics Ready.
+- Last Action: Integrated Professional Shipping Label Generator (jsPDF) for all orders.
+- Status: Secure /malik route active, Inventory & Logistics live.
 */
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { 
-  Check, Loader2, Image as ImageIcon, RefreshCw,
+  Check, Loader2, Image as ImageIcon, 
   Trash2, Plus, Minus, Package, LayoutGrid,
   TrendingUp, ShoppingCart, DollarSign, Activity,
   Printer, Tag, FileText, User, MapPin, Phone
@@ -41,10 +41,6 @@ export default function MalikDashboard() {
   const [analytics, setAnalytics] = useState<any>({ totalOrders: 0, totalRevenue: 0, liveVisitors: 0 });
   const [ordersList, setOrdersList] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  // Ref to hold the Presence channel so we can clean it up
-  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -56,16 +52,8 @@ export default function MalikDashboard() {
 
   useEffect(() => {
     if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email || ""))) router.push("/");
-    if (user && ADMIN_EMAILS.includes(user.email || "")) {
-      fetchAnalytics();
-      fetchShoes();
-      setupRealtimeSubscriptions();
-    }
-    // Cleanup subscriptions on unmount
-    return () => {
-      supabase.channel("orders-realtime").unsubscribe();
-      presenceChannelRef.current?.unsubscribe();
-    };
+    fetchAnalytics();
+    fetchShoes();
   }, [user, authLoading]);
 
   const fetchShoes = async () => {
@@ -75,73 +63,19 @@ export default function MalikDashboard() {
     setLoadingShoes(false);
   };
 
-  const fetchAnalytics = async (isManualRefresh = false) => {
-    if (isManualRefresh) setIsRefreshing(true);
-    else setLoadingOrders(true);
-    setFetchError(null);
-
-    // FIX 1: Proper error handling on order fetch
-    const { data: orders, error } = await supabase
-      .from("orders")
-      .select("*, shoes(name)")
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error("[Dashboard] Orders fetch error:", error.message);
-      setFetchError(error.message);
-    } else if (orders) {
+  const fetchAnalytics = async () => {
+    setLoadingOrders(true);
+    const { data: orders } = await supabase.from("orders").select("*, shoes(name)").order('created_at', { ascending: false });
+    if (orders) {
       setOrdersList(orders);
       const successOrders = orders.filter(o => o.status === 'success');
-      // FIX 2: Do NOT use Math.random(). liveVisitors is now set by
-      // the Supabase Presence subscription in setupRealtimeSubscriptions().
-      setAnalytics((prev: any) => ({
-        ...prev,
+      setAnalytics({
         totalOrders: successOrders.length,
         totalRevenue: successOrders.reduce((sum, o) => sum + Number(o.amount), 0),
-      }));
+        liveVisitors: Math.floor(Math.random() * 10) + 1,
+      });
     }
-
-    if (isManualRefresh) setIsRefreshing(false);
-    else setLoadingOrders(false);
-  };
-
-  const setupRealtimeSubscriptions = () => {
-    // ── FIX 3: Realtime Subscription for Orders ──────────────────
-    // Whenever a new row is INSERTed into 'orders', re-fetch analytics.
-    supabase
-      .channel("orders-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "orders" },
-        (payload) => {
-          console.log("[Realtime] New order received:", payload.new);
-          fetchAnalytics(); // Re-fetch to get updated totals
-        }
-      )
-      .subscribe();
-
-    // ── FIX 4: Supabase Presence for Live Visitors ───────────────
-    // The VisitorTracker component (in layout.tsx) tracks ALL users.
-    // Here in the dashboard, we SUBSCRIBE to that same channel and
-    // count the members to get the real live visitor count.
-    const presenceChannel = supabase.channel("live_visitors");
-    presenceChannelRef.current = presenceChannel;
-
-    presenceChannel
-      .on("presence", { event: "sync" }, () => {
-        // state() returns all current presence keys
-        const state = presenceChannel.presenceState();
-        const liveCount = Object.keys(state).length;
-        console.log("[Presence] Live visitors:", liveCount);
-        setAnalytics((prev: any) => ({ ...prev, liveVisitors: liveCount }));
-      })
-      .on("presence", { event: "join" }, ({ newPresences }) => {
-        console.log("[Presence] User joined:", newPresences);
-      })
-      .on("presence", { event: "leave" }, ({ leftPresences }) => {
-        console.log("[Presence] User left:", leftPresences);
-      })
-      .subscribe();
+    setLoadingOrders(false);
   };
 
   const handleUpdateStock = async (id: number, currentStock: number, delta: number) => {
@@ -310,28 +244,11 @@ export default function MalikDashboard() {
     <div className="min-h-screen bg-[#F9F9F9] p-6 sm:p-10 lg:p-20">
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex flex-wrap justify-between items-center mb-12 gap-4">
-          <div>
-            <h1 className="text-4xl font-black tracking-tight text-zinc-900">Malik Dashboard</h1>
-            {fetchError && (
-              <p className="text-xs text-red-500 mt-2 font-medium">⚠️ Error: {fetchError}</p>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Manual Refresh Button */}
-            <button
-              onClick={() => fetchAnalytics(true)}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-full text-xs font-bold transition-all"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
-            {/* Live Visitors (real Presence count) */}
-            <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              Live: {analytics.liveVisitors}
-            </div>
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl font-black tracking-tight text-zinc-900">Malik Dashboard</h1>
+          <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Live: {analytics.liveVisitors}
           </div>
         </div>
 
@@ -344,58 +261,55 @@ export default function MalikDashboard() {
                 <Plus className="w-6 h-6" />
                 Add Premium Product
               </h2>
-              {/* ── 2-Column Product Form ── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Product Name *</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kanpur Air V2" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all text-sm font-medium" />
+              <div className="space-y-6">
+                {/* Form fields ... same as before */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400">Product Name</label>
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kanpur Air V2" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400">Price (INR)</label>
+                    <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="799" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400">Initial Stock</label>
+                    <input type="number" value={stock} onChange={(e) => setStock(parseInt(e.target.value))} className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400">Category</label>
+                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold appearance-none">
+                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400">Short Tagline</label>
+                    <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Handcrafted in Kanpur" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Price (INR) *</label>
-                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="799" className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold text-sm" />
+                  <label className="text-xs font-bold uppercase text-zinc-400">Detailed Description</label>
+                  <textarea value={detailedDescription} onChange={(e) => setDetailedDescription(e.target.value)} rows={4} className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border-none focus:ring-2 focus:ring-zinc-900 transition-all" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Category</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold text-sm appearance-none">
-                    {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Initial Stock</label>
-                  <input type="number" value={stock} onChange={(e) => setStock(parseInt(e.target.value))} className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all font-bold text-sm" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Short Tagline</label>
-                  <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Handcrafted in Kanpur, premium leather..." className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all text-sm" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Detailed Description</label>
-                  <textarea value={detailedDescription} onChange={(e) => setDetailedDescription(e.target.value)} rows={3} placeholder="Full product details, materials, care instructions..." className="w-full px-5 py-4 bg-zinc-50 rounded-2xl border border-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all text-sm" />
-                </div>
-
-                {/* Image Upload + Instant Preview */}
-                <div className="space-y-3 md:col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Product Gallery *</label>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                <div className="space-y-4">
+                  <label className="text-xs font-bold uppercase text-zinc-400">Product Gallery</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {imageUrls.map((url, i) => (
-                      <div key={url} className="relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 group">
-                        <img src={url} alt={`Product ${i+1}`} className="w-full h-full object-cover" />
-                        {i === 0 && <span className="absolute bottom-1 left-1 bg-zinc-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md">Cover</span>}
-                        <button onClick={() => removeImage(i)} className="absolute top-1.5 right-1.5 p-1 bg-white/95 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"><Trash2 className="w-3 h-3" /></button>
+                      <div key={url} className="relative aspect-square rounded-2xl overflow-hidden border border-zinc-100">
+                        <img src={url} className="w-full h-full object-cover" />
+                        <button onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 bg-white/90 text-red-500 rounded-full"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     ))}
-                    <div className="relative aspect-square rounded-xl border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center hover:border-zinc-400 hover:bg-zinc-50 cursor-pointer transition-all gap-1">
-                      {uploading ? <Loader2 className="animate-spin w-5 h-5 text-zinc-400" /> : <><ImageIcon className="w-5 h-5 text-zinc-300" /><span className="text-[10px] text-zinc-400 font-bold">Upload</span></>}
+                    <div className="relative aspect-square rounded-2xl border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center hover:bg-zinc-50 cursor-pointer">
+                      {uploading ? <Loader2 className="animate-spin text-zinc-300" /> : <ImageIcon className="w-6 h-6 text-zinc-200" />}
                       <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="absolute inset-0 opacity-0 cursor-pointer" />
                     </div>
                   </div>
-                  {imageUrls.length === 0 && <p className="text-[11px] text-amber-600 font-medium">⚠ At least 1 image required before saving.</p>}
                 </div>
-              </div>
-
-              <div className="pt-4">
-                <button onClick={handleSaveProduct} disabled={saving || imageUrls.length === 0} className={`w-full py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${success ? 'bg-green-500 text-white shadow-lg shadow-green-100' : 'bg-zinc-900 text-white hover:bg-zinc-700 shadow-lg shadow-zinc-100'}`}>
-                  {saving ? <Loader2 className="animate-spin w-5 h-5" /> : success ? <><Check className="w-5 h-5" /> Product Saved!</> : <><Package className="w-5 h-5" /> Save Product</>}
+                <button onClick={handleSaveProduct} disabled={saving || imageUrls.length === 0} className={`w-full py-5 rounded-full font-bold text-lg flex items-center justify-center gap-3 transition-all ${success ? "bg-green-500 text-white" : "bg-zinc-900 text-white hover:bg-zinc-800"}`}>
+                  {saving ? <Loader2 className="animate-spin" /> : success ? <><Check /> Product Saved!</> : <><Package className="w-5 h-5" /> Save Product</>}
                 </button>
               </div>
             </div>
@@ -432,148 +346,85 @@ export default function MalikDashboard() {
               </div>
             </div>
 
-            {/* Orders Management */}
+            {/* Orders Management (Full Width Table) */}
             <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black flex items-center gap-3">
-                  <ShoppingCart className="w-6 h-6" />
-                  Orders & Logistics
-                </h2>
-                <span className="text-xs font-bold text-zinc-400 bg-zinc-50 px-3 py-1.5 rounded-full">{ordersList.length} total</span>
-              </div>
-              {loadingOrders ? (
-                <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-zinc-200" /></div>
-              ) : ordersList.length === 0 ? (
-                <div className="text-center py-24 bg-zinc-50 rounded-3xl">
-                  <ShoppingCart className="w-10 h-10 text-zinc-200 mx-auto mb-4" />
-                  <p className="font-bold text-zinc-400">No orders found yet.</p>
-                  <p className="text-xs text-zinc-300 mt-1">Orders will appear here once customers start purchasing.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100">
-                        <th className="pb-5 pr-4">Order</th>
-                        <th className="pb-5 px-4">Customer</th>
-                        <th className="pb-5 px-4">Amount</th>
-                        <th className="pb-5 px-4">Status</th>
-                        <th className="pb-5 pl-4 text-right">Action</th>
+              <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
+                <ShoppingCart className="w-6 h-6" />
+                Orders & Logistics
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-xs font-bold uppercase text-zinc-400 border-b border-zinc-50">
+                      <th className="pb-4 pr-4">Order Details</th>
+                      <th className="pb-4 px-4">Shipping Info</th>
+                      <th className="pb-4 px-4">Amount</th>
+                      <th className="pb-4 pl-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-50">
+                    {loadingOrders ? (
+                      <tr><td colSpan={4} className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-zinc-200" /></td></tr>
+                    ) : ordersList.map((order) => (
+                      <tr key={order.id} className="group hover:bg-zinc-50/50 transition-colors">
+                        <td className="py-6 pr-4">
+                          <div className="flex flex-col">
+                            <p className="font-bold text-sm text-zinc-900">{order.shoes?.name || "Premium Shoe"}</p>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">#{order.id.toString().slice(-6).toUpperCase()}</p>
+                            <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase w-fit ${order.status === 'success' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                              <div className={`w-1 h-1 rounded-full ${order.status === 'success' ? 'bg-green-500' : 'bg-orange-500'}`} />
+                              {order.status}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-6 px-4">
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold flex items-center gap-1.5"><User className="w-3 h-3 text-zinc-300" /> {order.customer_name}</p>
+                            <p className="text-[10px] text-zinc-500 flex items-center gap-1.5"><MapPin className="w-3 h-3 text-zinc-300" /> {order.city || "Kanpur"}</p>
+                            <p className="text-[10px] text-zinc-500 flex items-center gap-1.5"><Phone className="w-3 h-3 text-zinc-300" /> {order.phone || "N/A"}</p>
+                          </div>
+                        </td>
+                        <td className="py-6 px-4 font-black text-sm">₹{order.amount}</td>
+                        <td className="py-6 pl-4 text-right">
+                          <button 
+                            onClick={() => generateShippingLabel(order)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            Label
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-50">
-                      {ordersList.map((order) => (
-                        <tr key={order.id} className="group hover:bg-zinc-50/30 transition-colors">
-                          <td className="py-5 pr-4">
-                            <p className="font-bold text-sm text-zinc-900 leading-tight">{order.shoes?.name || 'Premium Shoe'}</p>
-                            <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mt-1">#{order.id.toString().slice(-6).toUpperCase()}</p>
-                          </td>
-                          <td className="py-5 px-4">
-                            <p className="text-xs font-bold text-zinc-800 flex items-center gap-1"><User className="w-3 h-3 text-zinc-300" /> {order.customer_name}</p>
-                            <p className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> {order.city || 'Kanpur'}, {order.pincode}</p>
-                            <p className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3" /> {order.phone || 'N/A'}</p>
-                          </td>
-                          <td className="py-5 px-4">
-                            <span className="text-base font-black text-zinc-900">₹{Number(order.amount).toLocaleString()}</span>
-                          </td>
-                          <td className="py-5 px-4">
-                            <button
-                              onClick={async () => {
-                                const newStatus = order.status === 'success' ? 'pending' : 'success';
-                                await supabase.from('orders').update({ status: newStatus }).eq('id', order.id);
-                                setOrdersList(prev => prev.map(o => o.id === order.id ? { ...o, status: newStatus } : o));
-                              }}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all hover:scale-105 ${
-                                order.status === 'success'
-                                  ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
-                                  : 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100'
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${order.status === 'success' ? 'bg-green-500' : 'bg-amber-500'}`} />
-                              {order.status === 'success' ? 'Completed' : 'Pending'}
-                            </button>
-                          </td>
-                          <td className="py-5 pl-4 text-right">
-                            <button
-                              onClick={() => generateShippingLabel(order)}
-                              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-zinc-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-[#FF4F00] transition-all duration-300"
-                            >
-                              <Printer className="w-3.5 h-3.5" /> Label
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
           {/* Right Column: Analytics Sidebar */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Stats Card — fixed white labels */}
+          <div className="lg:col-span-4 space-y-8">
             <div className="bg-zinc-900 p-8 rounded-[2.5rem] text-white">
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Total Revenue</p>
-              <h2 className="text-5xl font-black text-white mb-8 tracking-tight">₹{analytics.totalRevenue.toLocaleString()}</h2>
+              <p className="text-xs font-bold opacity-50 uppercase tracking-widest mb-4">Total Revenue</p>
+              <h2 className="text-4xl font-black mb-8">₹{analytics.totalRevenue.toLocaleString()}</h2>
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 bg-white/10 rounded-2xl flex flex-col gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300">Orders</p>
-                  <p className="text-3xl font-black text-white">{analytics.totalOrders}</p>
+                <div className="p-4 bg-white/10 rounded-2xl">
+                  <p className="text-[10px] opacity-40 uppercase font-bold mb-1">Orders</p>
+                  <p className="text-xl font-bold">{analytics.totalOrders}</p>
                 </div>
-                <div className="p-5 bg-white/10 rounded-2xl flex flex-col gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300">Live Now</p>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <p className="text-3xl font-black text-white">{analytics.liveVisitors}</p>
-                  </div>
+                <div className="p-4 bg-white/10 rounded-2xl">
+                  <p className="text-[10px] opacity-40 uppercase font-bold mb-1">Live Vis.</p>
+                  <p className="text-xl font-bold">{analytics.liveVisitors}</p>
                 </div>
               </div>
             </div>
-
-            {/* Store Status */}
+            
             <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm">
-              <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-5">Store Status</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-sm font-medium text-zinc-600">Total Products</span>
-                  <span className="text-sm font-black text-zinc-900">{shoesList.length}</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-sm font-medium text-zinc-600">Low Stock (&lt;5)</span>
-                  <span className={`text-sm font-black ${shoesList.filter(s => s.stock < 5).length > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                    {shoesList.filter(s => s.stock < 5).length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-sm font-medium text-zinc-600">Pending Orders</span>
-                  <span className="text-sm font-black text-amber-600">
-                    {ordersList.filter(o => o.status !== 'success').length}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Logistics Instructions — preserved & polished */}
-            <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-6">
-                <Printer className="w-4 h-4 text-zinc-400" />
-                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Logistics Instructions</h3>
-              </div>
-              <ul className="space-y-4">
-                {[
-                  'Print labels on A6 thermal paper for best results.',
-                  'Paste label flat & securely on the top of the box.',
-                  'Mark FRAGILE on leather shoe boxes before dispatch.',
-                  'Double-check customer phone & PIN before sealing.'
-                ].map((tip, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-green-500" />
-                    </div>
-                    <span className="text-xs text-zinc-500 leading-relaxed font-medium">{tip}</span>
-                  </li>
-                ))}
+              <h3 className="font-bold mb-6 flex items-center gap-2 uppercase text-xs tracking-widest text-zinc-400">Logistics Instructions</h3>
+              <ul className="space-y-4 text-xs text-zinc-500">
+                <li className="flex gap-3"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Print A6 labels on thermal paper.</li>
+                <li className="flex gap-3"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Paste label securely on the top box.</li>
+                <li className="flex gap-3"><Check className="w-4 h-4 text-green-500 flex-shrink-0" /> Check for "Fragile" mark for leather shoes.</li>
               </ul>
             </div>
           </div>
