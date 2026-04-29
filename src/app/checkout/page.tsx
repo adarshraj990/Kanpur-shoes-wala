@@ -32,10 +32,10 @@ export default function CheckoutPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [isMockMode, setIsMockMode] = useState(true); // TOGGLE THIS FOR PRODUCTION
+  const [isMockMode, setIsMockMode] = useState(false); // DISABLED MOCK MODE - NOW LIVE
 
   // Razorpay Key Placeholder
-  const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YOUR_KEY_HERE";
+  const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_SjFNmFxvcYnqxU";
 
   useEffect(() => {
     if (cart.length === 0) {
