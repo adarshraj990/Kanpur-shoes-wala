@@ -22,199 +22,170 @@ export default function Home() {
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
       {/* ═══════════════════════ HERO ═══════════════════════ */}
-      <section
-        className="relative flex flex-col items-center justify-center text-center bg-[#F8F8F8] px-6 sm:px-8"
-        style={{ minHeight: "100vh", paddingTop: "5rem", paddingBottom: "4rem" }}
-      >
+      <section style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        minHeight: "100vh",
+        paddingTop: "5rem",
+        paddingBottom: "4rem",
+        paddingLeft: "1.5rem",
+        paddingRight: "1.5rem",
+        background: "#F8F8F8",
+        overflow: "hidden",
+      }}>
         {/* Background blobs */}
-        <div
-          className="pointer-events-none absolute top-0 right-0 rounded-full"
-          style={{
-            width: "min(500px, 70vw)",
-            height: "min(500px, 70vw)",
-            background: "rgba(255,69,0,0.06)",
-            filter: "blur(100px)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute bottom-0 left-0 rounded-full"
-          style={{
-            width: "min(400px, 60vw)",
-            height: "min(400px, 60vw)",
-            background: "rgba(26,26,26,0.04)",
-            filter: "blur(120px)",
-          }}
-        />
+        <div style={{
+          position: "absolute", top: 0, right: 0, pointerEvents: "none",
+          width: "min(500px,70vw)", height: "min(500px,70vw)",
+          background: "rgba(255,69,0,0.06)", borderRadius: "50%", filter: "blur(100px)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, pointerEvents: "none",
+          width: "min(400px,60vw)", height: "min(400px,60vw)",
+          background: "rgba(26,26,26,0.04)", borderRadius: "50%", filter: "blur(120px)",
+        }} />
 
-        {/* Content — using whileInView so animations ALWAYS fire */}
-        <div
-          className="relative w-full max-w-2xl mx-auto flex flex-col items-center gap-5"
-          style={{ zIndex: 10 }}
-        >
-          {/* Pill badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <span
-              className="inline-flex items-center gap-2 px-4 py-1.5 border border-[#FF4500]/30 rounded-full bg-[#FF4500]/6 text-[#FF4500]"
-              style={{
-                fontSize: "10px",
-                fontFamily: "var(--font-montserrat)",
-                fontWeight: 800,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-              }}
-            >
-              <span
-                className="rounded-full animate-pulse"
-                style={{ width: 6, height: 6, background: "#FF4500", display: "inline-block" }}
-              />
-              Kanpur Shoes Wala · D2C Brand
-            </span>
-          </motion.div>
+        {/* Hero Content — NO animations, always visible */}
+        <div style={{
+          position: "relative", zIndex: 10,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: "1.25rem", width: "100%", maxWidth: "42rem", margin: "0 auto",
+        }}>
+
+          {/* Badge */}
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "6px 16px",
+            border: "1px solid rgba(255,69,0,0.3)",
+            borderRadius: 999,
+            background: "rgba(255,69,0,0.06)",
+            color: "#FF4500",
+            fontSize: 10,
+            fontFamily: "var(--font-montserrat)",
+            fontWeight: 800,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+          }}>
+            <span style={{
+              width: 6, height: 6, background: "#FF4500",
+              borderRadius: "50%", display: "inline-block",
+            }} />
+            Kanpur Shoes Wala · D2C Brand
+          </span>
 
           {/* H1 */}
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.6, delay: 0.08 }}
-            style={{
-              fontFamily: "var(--font-montserrat)",
-              fontWeight: 900,
-              letterSpacing: "-0.04em",
-              lineHeight: 0.88,
-              fontSize: "clamp(3rem, 14vw, 7rem)",
-              color: "#1A1A1A",
-            }}
-          >
-            PREMIUM
-            <br />
-            <span style={{ color: "#FF4500" }}>DIRECT</span>
-            <br />
+          <h1 style={{
+            fontFamily: "var(--font-montserrat)",
+            fontWeight: 900,
+            letterSpacing: "-0.04em",
+            lineHeight: 0.9,
+            fontSize: "clamp(3.2rem, 14vw, 7rem)",
+            color: "#1A1A1A",
+            margin: 0,
+          }}>
+            PREMIUM<br />
+            <span style={{ color: "#FF4500" }}>DIRECT</span><br />
             TO YOU.
-          </motion.h1>
+          </h1>
 
-          {/* Sub-heading */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.5, delay: 0.18 }}
-            className="text-base sm:text-lg leading-relaxed font-medium"
-            style={{ color: "#6B7280", maxWidth: "28rem" }}
-          >
-            Handcrafted in Kanpur. No middlemen.
-            <br />
+          {/* Sub */}
+          <p style={{
+            fontSize: "clamp(0.95rem, 3vw, 1.1rem)",
+            color: "#6B7280",
+            lineHeight: 1.7,
+            fontWeight: 500,
+            maxWidth: "26rem",
+            margin: 0,
+          }}>
+            Handcrafted in Kanpur. No middlemen.<br />
             Premium shoes from{" "}
             <span style={{ color: "#FF4500", fontWeight: 700 }}>₹499</span>.
-          </motion.p>
+          </p>
 
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.5, delay: 0.26 }}
-            className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2"
-          >
-            <a
-              href="#gallery"
-              className="flex items-center justify-center gap-2 rounded-full font-black uppercase hover:opacity-90 active:scale-95 transition-all"
-              style={{
-                fontFamily: "var(--font-montserrat)",
-                fontSize: "14px",
-                letterSpacing: "0.07em",
-                background: "#FF4500",
-                color: "#fff",
-                padding: "14px 32px",
-                minHeight: 52,
-                boxShadow: "0 8px 24px rgba(255,69,0,0.30)",
-              }}
-            >
+          {/* CTAs */}
+          <div style={{
+            display: "flex", flexDirection: "column", gap: 12,
+            width: "100%", maxWidth: 340, paddingTop: 8,
+          }}>
+            <a href="#gallery" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              background: "#FF4500", color: "#fff",
+              borderRadius: 999, border: "none",
+              padding: "15px 32px", minHeight: 52,
+              fontFamily: "var(--font-montserrat)",
+              fontSize: 13, fontWeight: 800,
+              letterSpacing: "0.08em", textTransform: "uppercase",
+              textDecoration: "none",
+              boxShadow: "0 8px 24px rgba(255,69,0,0.35)",
+              cursor: "pointer",
+            }}>
               Shop Collection
-              <ArrowRight style={{ width: 16, height: 16 }} />
+              <ArrowRight style={{ width: 15, height: 15, flexShrink: 0 }} />
             </a>
-            <a
-              href="#about"
-              className="flex items-center justify-center rounded-full font-black uppercase transition-all hover:bg-[#1A1A1A] hover:text-white active:scale-95"
-              style={{
-                fontFamily: "var(--font-montserrat)",
-                fontSize: "14px",
-                letterSpacing: "0.07em",
-                border: "2px solid #1A1A1A",
-                color: "#1A1A1A",
-                padding: "14px 32px",
-                minHeight: 52,
-              }}
-            >
+            <a href="#about" style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "transparent", color: "#1A1A1A",
+              borderRadius: 999, border: "2px solid #1A1A1A",
+              padding: "13px 32px", minHeight: 52,
+              fontFamily: "var(--font-montserrat)",
+              fontSize: 13, fontWeight: 800,
+              letterSpacing: "0.08em", textTransform: "uppercase",
+              textDecoration: "none", cursor: "pointer",
+            }}>
               Our Story
             </a>
-          </motion.div>
+          </div>
 
-          {/* Social Proof */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.5, delay: 0.36 }}
-            className="flex items-center gap-3 pt-1"
-          >
-            <div className="flex" style={{ gap: -8 }}>
+          {/* Social proof */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 4 }}>
+            <div style={{ display: "flex" }}>
               {["FF4500", "1A1A1A", "6B7280", "FF6B35"].map((c, i) => (
-                <div
-                  key={i}
-                  className="rounded-full border-2 border-white"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    background: `#${c}`,
-                    marginLeft: i > 0 ? -8 : 0,
-                  }}
-                />
+                <div key={i} style={{
+                  width: 28, height: 28,
+                  background: `#${c}`,
+                  borderRadius: "50%",
+                  border: "2px solid #F8F8F8",
+                  marginLeft: i > 0 ? -8 : 0,
+                }} />
               ))}
             </div>
-            <div className="text-left">
-              <div className="flex items-center gap-0.5">
+            <div style={{ textAlign: "left" }}>
+              <div style={{ display: "flex", gap: 2 }}>
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} style={{ width: 12, height: 12, fill: "#FF4500", color: "#FF4500" }} />
+                  <Star key={i} style={{ width: 11, height: 11, fill: "#FF4500", color: "#FF4500" }} />
                 ))}
               </div>
-              <p style={{ fontSize: 11, color: "#6B7280", fontWeight: 500, marginTop: 2 }}>
+              <p style={{ fontSize: 10, color: "#6B7280", fontWeight: 500, marginTop: 2 }}>
                 500+ happy customers
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Scroll cue */}
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
-          className="absolute flex flex-col items-center gap-1.5 pointer-events-none"
-          style={{ bottom: 28, left: "50%", transform: "translateX(-50%)" }}
+          style={{
+            position: "absolute", bottom: 24,
+            left: "50%", transform: "translateX(-50%)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            pointerEvents: "none",
+          }}
         >
-          <div
-            style={{
-              width: 1,
-              height: 36,
-              background: "linear-gradient(to bottom, rgba(26,26,26,0.25), transparent)",
-            }}
-          />
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              color: "rgba(26,26,26,0.25)",
-            }}
-          >
-            Scroll
-          </span>
+          <div style={{
+            width: 1, height: 32,
+            background: "linear-gradient(to bottom, rgba(26,26,26,0.2), transparent)",
+          }} />
+          <span style={{
+            fontSize: 8, fontWeight: 800,
+            letterSpacing: "0.25em", textTransform: "uppercase",
+            color: "rgba(26,26,26,0.2)",
+          }}>Scroll</span>
         </motion.div>
       </section>
 
