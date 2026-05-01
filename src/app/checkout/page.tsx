@@ -107,17 +107,17 @@ export default function CheckoutPage() {
               <div className="space-y-5">
                 <div className="space-y-2">
                   <label className={labelCls}>Full Name</label>
-                  <input name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputCls} placeholder="Adarsh Kumar" />
+                  <input name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputCls} placeholder="Your Full Name" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <label className={labelCls}>Phone Number</label>
-                    <input name="phone" value={formData.phone} onChange={handleInputChange} className={inputCls} placeholder="+91 98765 43210" />
+                    <input name="phone" value={formData.phone} onChange={handleInputChange} className={inputCls} placeholder="+91" />
                   </div>
                   <div className="space-y-2">
                     <label className={labelCls}>PIN Code</label>
-                    <input name="pincode" value={formData.pincode} onChange={handleInputChange} className={inputCls} placeholder="208001" />
+                    <input name="pincode" value={formData.pincode} onChange={handleInputChange} className={inputCls} placeholder="6-digit code" />
                   </div>
                 </div>
 
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
 
                 <div className="space-y-2">
                   <label className={labelCls}>City</label>
-                  <input name="city" value={formData.city} onChange={handleInputChange} className={inputCls} placeholder="Kanpur" />
+                  <input name="city" value={formData.city} onChange={handleInputChange} className={inputCls} placeholder="City Name" />
                 </div>
               </div>
             </div>
