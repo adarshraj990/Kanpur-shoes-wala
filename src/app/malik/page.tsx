@@ -53,24 +53,26 @@ export default function MalikDashboard() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-[#1A1A1A] p-6 fixed h-full">
+      <aside className="hidden lg:flex flex-col w-64 border-r border-[#1A1A1A] p-6 fixed top-0 left-0 bottom-0 z-50 bg-[#0A0A0A]">
         <div className="mb-10">
           <div className="w-10 h-10 rounded-xl bg-[#FF4F00] flex items-center justify-center mb-3">
             <Package className="w-5 h-5 text-white" />
           </div>
           <h1 className="text-lg font-black tracking-tight">Malik Panel</h1>
-          <p className="text-xs text-zinc-500 mt-1">{user?.email}</p>
+          <p className="text-[10px] font-bold text-zinc-600 truncate mt-1">{user?.email}</p>
         </div>
-        <nav className="flex flex-col gap-1 flex-1">
+        <nav className="flex flex-col gap-1.5 flex-1">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setActiveTab(n.id)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all text-left ${activeTab === n.id ? "bg-[#FF4F00] text-white" : "text-zinc-400 hover:text-white hover:bg-[#1A1A1A]"}`}>
-              <n.icon className="w-4 h-4" />{n.label}
+            <button key={n.id} onClick={() => setActiveTab(n.id)} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-left ${activeTab === n.id ? "bg-[#FF4F00] text-white shadow-lg shadow-orange-900/20" : "text-zinc-500 hover:text-white hover:bg-[#1A1A1A]"}`}>
+              <n.icon className="w-4 h-4 flex-shrink-0" />{n.label}
             </button>
           ))}
         </nav>
-        <button onClick={signOut} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-zinc-500 hover:text-red-400 hover:bg-[#1A1A1A] transition-all">
-          <LogOut className="w-4 h-4" />Sign Out
-        </button>
+        <div className="pt-6 border-t border-[#1A1A1A]">
+          <button onClick={signOut} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all">
+            <LogOut className="w-4 h-4 flex-shrink-0" />Sign Out
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Top Bar */}
@@ -79,15 +81,16 @@ export default function MalikDashboard() {
         <div className="flex gap-1">{NAV.map(n => (<button key={n.id} onClick={() => setActiveTab(n.id)} className={`p-2 rounded-lg transition-all ${activeTab === n.id ? "bg-[#FF4F00]" : "text-zinc-500"}`}><n.icon className="w-4 h-4" /></button>))}</div>
       </div>
 
-      {/* Main */}
-      <main className="flex-1 lg:ml-64 p-6 lg:p-10 pt-20 lg:pt-10">
+      {/* Main Content Area */}
+      <main className="flex-1 w-full lg:ml-64 min-h-screen">
+        <div className="p-6 lg:p-12 pt-24 lg:pt-12 max-w-[1200px] mx-auto">
 
         {/* OVERVIEW */}
         {activeTab === "overview" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-black tracking-tight">Overview</h2>
-              <p className="text-zinc-500 mt-1">Kanpur Shoes Wala — Business Dashboard</p>
+            <div className="mb-10">
+              <h2 className="text-4xl sm:text-6xl font-black tracking-tighter leading-none">Dashboard<br /><span className="text-[#FF4F00]">Overview</span></h2>
+              <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-4">Kanpur Shoes Wala — Business Intelligence</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
@@ -211,6 +214,7 @@ export default function MalikDashboard() {
             </div>
           </motion.div>
         )}
+        </div>
       </main>
 
       {/* Delete Modal */}
