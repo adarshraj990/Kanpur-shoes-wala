@@ -30,7 +30,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          }
+        });
         if (error) throw error;
         alert("Check your email for confirmation!");
       } else {
