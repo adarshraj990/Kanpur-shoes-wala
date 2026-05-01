@@ -144,9 +144,9 @@ export default function ProductGallery() {
       </div>
 
       {/* ── Product Grid (Luxury Spacing) ── */}
-      <motion.div
+    <motion.div
         layout
-        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10"
+        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 sm:gap-8 lg:gap-10"
       >
         <AnimatePresence mode="popLayout">
           {filteredShoes.map((shoe) => (

@@ -39,7 +39,7 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
     <motion.div
       whileHover={{ y: -8 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as any }}
-      className="group flex flex-col bg-white rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-[#E5E7EB] hover:border-[#121212]/10 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] transition-all duration-500 h-full"
+      className="group hover-glow flex flex-col bg-white rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-[#E5E7EB] hover:border-[#121212]/10 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] transition-all duration-500 h-full"
     >
       {/* ── Image Container ── */}
       <Link

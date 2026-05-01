@@ -29,8 +29,8 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? "bg-white/80 backdrop-blur-xl border-b border-[#F3F4F6] py-3 shadow-sm"
-            : "bg-transparent py-6"
+            ? "glass border-b border-[#F3F4F6] py-3 shadow-[0_1px_20px_rgba(0,0,0,0.03)]"
+            : "bg-transparent py-7"
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-6 sm:px-10 flex justify-between items-center relative">

@@ -20,6 +20,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -28,6 +29,31 @@ body {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Premium Scrollbar for Desktop */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FAFAFA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #DDD;
+    border-radius: 10px;
+    border: 2px solid #FAFAFA;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF4500;
+  }
+}
+
+/* Selection color */
+::selection {
+  background: #FF4500;
+  color: white;
 }
 
 .font-montserrat {
@@ -38,70 +64,32 @@ body {
   font-family: var(--font-inter);
 }
 
-/* Glassmorphism utility */
+/* Desktop-only hover glow */
+.hover-glow:hover {
+  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.15);
+  transform: translateY(-4px);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Glassmorphism */
 .glass {
   background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-/* Brand orange utilities */
-.text-brand { color: #FF4500; }
-.bg-brand { background-color: #FF4500; }
-.border-brand { border-color: #FF4500; }
-.hover\:bg-brand:hover { background-color: #FF4500; }
-.hover\:text-brand:hover { color: #FF4500; }
-
-/* CTA Button - Electric Orange */
-.btn-brand {
-  background-color: #FF4500;
-  color: #FFFFFF;
-  font-family: var(--font-montserrat);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.btn-brand:hover {
-  background-color: #E63E00;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.35);
-}
-.btn-brand:active {
-  transform: translateY(0);
+.dark-glass {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
+/* Custom Scrollbar for inner elements */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #1A1A1A;
-  border-radius: 2px;
-}
-
-/* Mobile touch target minimum */
-button, a {
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Override for inline/block elements */
-p a, li a, nav a, footer a {
-  min-height: unset;
-  min-width: unset;
-  display: inline;
-}
-
-/* Selection color */
-::selection {
-  background: #FF4500;
-  color: white;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
