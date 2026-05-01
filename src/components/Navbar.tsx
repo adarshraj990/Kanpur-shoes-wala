@@ -39,6 +39,7 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
           <div className="flex-1 hidden lg:flex items-center gap-8">
             <ul className="flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-[#121212]/60">
               <li><Link href="/#gallery" className="hover:text-[#FF4F00] transition-colors">Collection</Link></li>
+              <li><Link href="/orders" className="hover:text-[#FF4F00] transition-colors">Orders</Link></li>
               <li><Link href="/#about" className="hover:text-[#FF4F00] transition-colors">Story</Link></li>
             </ul>
           </div>
@@ -127,6 +128,14 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
                 style={{ fontFamily: "var(--font-montserrat)" }}
               >
                 Collection
+              </Link>
+              <Link
+                href="/orders"
+                onClick={() => setMobileOpen(false)}
+                className="text-4xl font-black text-[#121212] tracking-tighter"
+                style={{ fontFamily: "var(--font-montserrat)" }}
+              >
+                My Orders
               </Link>
               <Link
                 href="/#about"
