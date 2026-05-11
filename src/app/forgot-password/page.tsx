@@ -41,55 +41,63 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 selection:bg-black selection:text-white">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm border border-zinc-100"
+        className="max-w-[420px] w-full bg-white p-10 rounded-[40px] shadow-2xl border border-[#f0f0f0] relative"
       >
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors mb-8 text-sm font-medium">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Login
+        <Link href="/" className="absolute top-10 left-10 p-2 text-[#ccc] hover:text-black hover:bg-[#f7f7f7] rounded-full transition-all">
+          <ArrowLeft className="w-5 h-5" />
         </Link>
 
-        <h1 className="text-3xl font-black tracking-tight text-zinc-900 mb-2">Forgot Password</h1>
-        <p className="text-zinc-500 text-sm mb-8">Enter your email and we'll send you a link to reset your password.</p>
+        <div className="flex flex-col items-center mb-10 pt-4">
+          <span className="text-[18px] font-black tracking-tighter text-[#111] leading-none uppercase flex flex-col items-center mb-2">
+            <span>Kanpur Shoes</span>
+            <span className="text-[9px] tracking-[0.4em] text-[#999] -mt-0.5">Wala</span>
+          </span>
+          <div className="h-1 w-8 bg-black rounded-full mt-4" />
+        </div>
+
+        <div className="text-center mb-10">
+          <h1 className="text-[28px] font-black tracking-tight text-black leading-tight">Recover Access</h1>
+          <p className="text-[#888] text-[14px] mt-2 font-medium">We'll send you a link to reset your password.</p>
+        </div>
 
         <form onSubmit={handleResetRequest} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 ml-1">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-6 py-4 bg-zinc-50 border-none rounded-2xl focus:ring-2 focus:ring-zinc-900 transition-all font-medium"
-                placeholder="you@example.com"
-              />
-            </div>
+          <div className="relative group">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb] group-focus-within:text-black transition-colors" />
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-11 pr-4 py-4 bg-[#f9f9f9] border border-transparent rounded-[18px] focus:bg-white focus:border-[#eee] transition-all text-[14px] text-black placeholder:text-[#bbb] outline-none"
+              placeholder="Email address"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-5 bg-zinc-900 text-white rounded-full font-bold text-lg hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200 active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-4 bg-black text-white rounded-[20px] font-bold text-[14px] tracking-tight hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-black/5"
           >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Send Reset Link"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Link"}
           </button>
         </form>
 
         {message && (
           <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className={`mt-6 p-4 rounded-2xl flex items-start gap-3 ${
-              message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`mt-8 p-4 rounded-2xl flex items-start gap-3 border ${
+              message.type === "success" 
+                ? "bg-green-50 border-green-100 text-green-700" 
+                : "bg-red-50 border-red-100 text-red-700"
             }`}
           >
             {message.type === "success" && <CheckCircle className="w-5 h-5 shrink-0" />}
-            <p className="text-sm font-medium">{message.text}</p>
+            <p className="text-[13px] font-bold leading-relaxed">{message.text}</p>
           </motion.div>
         )}
       </motion.div>
