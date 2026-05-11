@@ -148,6 +148,29 @@ body {
   color: #aaaaaa;
 }
 
+/* Standard Input */
+.ksw-input {
+  display: block !important;
+  width: 100% !important;
+  height: 56px !important;
+  padding: 0 16px 0 48px !important;
+  background-color: #f9f9f9 !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  font-size: 14px !important;
+  color: #111111 !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+}
+.ksw-input:focus {
+  background-color: #ffffff !important;
+  border-color: #eeeeee !important;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.02) !important;
+}
+.ksw-input::placeholder {
+  color: #bbbbbb !important;
+}
+
 /* Size box */
 .size-box {
   display: flex;

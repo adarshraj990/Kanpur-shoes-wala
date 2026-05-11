@@ -91,28 +91,52 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleAuth} className="space-y-6">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb]" />
+            <form onSubmit={handleAuth} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
+                <div className="relative w-full" style={{ height: '56px' }}>
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb] z-10 pointer-events-none" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-[#f9f9f9] border border-transparent rounded-[18px] focus:bg-white focus:border-[#eee] transition-all text-[14px] text-black placeholder:text-[#bbb] outline-none"
+                    style={{
+                      height: '56px',
+                      width: '100%',
+                      backgroundColor: '#f9f9f9',
+                      paddingLeft: '48px',
+                      paddingRight: '16px',
+                      borderRadius: '16px',
+                      border: '1px solid transparent',
+                      fontSize: '14px',
+                      color: '#111',
+                      outline: 'none',
+                      display: 'block'
+                    }}
                     placeholder="Email address"
                   />
                 </div>
 
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb]" />
+                <div className="relative w-full" style={{ height: '56px' }}>
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb] z-10 pointer-events-none" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-[#f9f9f9] border border-transparent rounded-[18px] focus:bg-white focus:border-[#eee] transition-all text-[14px] text-black placeholder:text-[#bbb] outline-none"
+                    style={{
+                      height: '56px',
+                      width: '100%',
+                      backgroundColor: '#f9f9f9',
+                      paddingLeft: '48px',
+                      paddingRight: '16px',
+                      borderRadius: '16px',
+                      border: '1px solid transparent',
+                      fontSize: '14px',
+                      color: '#111',
+                      outline: 'none',
+                      display: 'block'
+                    }}
                     placeholder="Password"
                   />
                 </div>
