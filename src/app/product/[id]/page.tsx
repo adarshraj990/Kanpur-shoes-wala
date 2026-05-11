@@ -25,7 +25,6 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchShoe = async () => {
@@ -56,6 +55,8 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  if (!shoe) return null;
 
   const gallery = shoe.image_urls && shoe.image_urls.length > 0 
     ? shoe.image_urls 
@@ -145,23 +146,14 @@ export default function ProductDetailPage() {
               {shoe.description}
             </p>
 
-            {/* Size Selector */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size (UK)</span>
-                <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
+                <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Select Size (UK)</span>
+                <button className="text-[10px] font-bold uppercase tracking-widest text-zinc-900 underline underline-offset-4">Size Guide</button>
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {(shoe.sizes && shoe.sizes.length > 0 ? shoe.sizes : ["6", "7", "8", "9", "10", "11"]).map((size: string) => (
-                  <button 
-                    key={size} 
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-4 border-2 rounded-xl text-sm font-bold transition-all ${
-                      selectedSize === size 
-                        ? "border-black bg-black text-white" 
-                        : "border-zinc-200 hover:border-black"
-                    }`}
-                  >
+                {["7", "8", "9", "10"].map((size) => (
+                  <button key={size} className="py-4 border border-zinc-200 rounded-2xl text-sm font-bold hover:border-zinc-900 transition-all">
                     {size}
                   </button>
                 ))}

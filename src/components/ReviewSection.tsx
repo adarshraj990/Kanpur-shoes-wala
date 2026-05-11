@@ -34,10 +34,6 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
   const [comment, setComment] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId]);
-
   const fetchReviews = async () => {
     try {
       const { data, error } = await supabase
@@ -54,6 +50,10 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [productId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
