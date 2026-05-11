@@ -59,7 +59,7 @@ export default function PrivacyPolicy() {
 
           <div className="mt-20 pt-12 border-t border-[#efefef]">
             <p className="text-[14px] text-[#999]">
-              If you have any questions about this Privacy Policy, please contact us at <span className="text-black font-bold">hello@ksw.in</span>.
+              If you have any questions about this Privacy Policy, please contact our support team.
             </p>
           </div>
         </div>

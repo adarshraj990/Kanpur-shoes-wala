@@ -262,7 +262,7 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Support + Contacts */}
+            {/* Support */}
             <div>
               <h4 className="text-[11px] font-black uppercase tracking-[0.18em] text-[#111] mb-4">Support</h4>
               <ul className="space-y-3 mb-6">
@@ -270,13 +270,7 @@ export default function Home() {
                 <li><Link href="/shipping-policy" className="text-[13px] text-[#777] hover:text-black transition-colors">Delivery</Link></li>
                 <li><Link href="/return-policy" className="text-[13px] text-[#777] hover:text-black transition-colors">Returns</Link></li>
                 <li><Link href="#" className="text-[13px] text-[#777] hover:text-black transition-colors">Size Guide</Link></li>
-                <li><Link href="#" className="text-[13px] text-[#777] hover:text-black transition-colors">Contact us</Link></li>
               </ul>
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-[#111]">+91 9876 543 210</p>
-                <p className="text-[12px] text-[#777]">hello@ksw.in</p>
-                <p className="text-[12px] text-[#777]">123 Main St, Kanpur, UP 208001</p>
-              </div>
             </div>
           </div>
 

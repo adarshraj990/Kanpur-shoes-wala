@@ -12,7 +12,7 @@ export default function ReturnPolicy() {
     },
     {
       title: "2. Return Process",
-      content: "To start a return, you can contact us at returns@ksw.in. If your return is accepted, we'll send you a return shipping label, as well as instructions on how and where to send your package. Items sent back to us without first requesting a return will not be accepted."
+      content: "To start a return, you can contact our support team. If your return is accepted, we'll send you a return shipping label, as well as instructions on how and where to send your package. Items sent back to us without first requesting a return will not be accepted."
     },
     {
       title: "3. Exchanges",
