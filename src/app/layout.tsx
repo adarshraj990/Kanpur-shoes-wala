@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     description: "Eliminating the middleman. Handcrafted footwear from Kanpur, delivered to your door.",
     type: "website",
   },
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -41,7 +42,7 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-inter bg-[#050505] text-[#FAFAFA]">
+      <body className="min-h-full flex flex-col font-inter bg-white text-[#111]">
         <AuthProvider>
           <CartProvider>
             <VisitorTracker />

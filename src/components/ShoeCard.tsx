@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Heart } from "lucide-react";
 import { useState } from "react";
+import { Star } from "lucide-react";
 
 interface Shoe {
   id: number;
@@ -14,86 +15,164 @@ interface Shoe {
   description: string;
   image_url: string;
   category?: string;
+  sizes?: string[];
 }
 
 export default function ShoeCard({ shoe }: { shoe: Shoe }) {
-  const { addToCart, buyNow } = useCart();
+  const { addToCart } = useCart();
   const { name, price, description, image_url, category } = shoe;
+  const [wishlisted, setWishlisted] = useState(false);
   const [added, setAdded] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  const availableSizes = shoe.sizes && shoe.sizes.length > 0
+    ? shoe.sizes
+    : ["6", "7", "8", "9", "10", "11"];
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(shoe);
+    
+    if (!selectedSize) {
+      setShowSizes(true);
+      return;
+    }
+
+    addToCart({ ...shoe, selectedSize });
     setAdded(true);
+    setShowSizes(false);
+    setSelectedSize(null);
     setTimeout(() => setAdded(false), 1600);
   };
 
-  const handleBuyNow = (e: React.MouseEvent) => {
+  const handleSizeClick = (e: React.MouseEvent, size: string) => {
     e.preventDefault();
     e.stopPropagation();
-    buyNow(shoe);
+    setSelectedSize(size);
+    // Auto-add after selecting size for better UX
+    addToCart({ ...shoe, selectedSize: size });
+    setAdded(true);
+    setShowSizes(false);
+    setSelectedSize(null);
+    setTimeout(() => setAdded(false), 1600);
   };
+
+  // Derive a display rating (static visual per card)
+  const rating = 4.5;
 
   return (
     <motion.div
-      whileHover={{ y: -8 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col h-full cursor-pointer relative"
+      className="group flex flex-col h-full cursor-pointer"
     >
-      {/* Background Glow Effect on Hover */}
-      <div className="absolute inset-0 bg-[#FDE68A]/0 group-hover:bg-[#FDE68A]/5 blur-3xl rounded-3xl transition-colors duration-500 -z-10" />
-
       {/* Image Container */}
-      <Link href={`/product/${shoe.id}`} className="relative bg-[#0a0a0a] border border-white/5 aspect-[4/5] rounded-3xl overflow-hidden mb-6">
-        <Image
-          src={image_url || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800"}
-          alt={name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:opacity-80"
-        />
-        
-        {/* Floating Quick Action */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8">
-          <div className="flex gap-3 translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-            <button 
-              onClick={handleAddToCart}
-              className={`p-3.5 rounded-full backdrop-blur-xl border transition-all duration-300 ${
-                added ? "bg-[#FDE68A] text-black border-[#FDE68A] shadow-[0_0_15px_#FDE68A]" : "bg-black/50 text-white border-white/20 hover:bg-[#FDE68A] hover:text-black hover:border-[#FDE68A]"
-              }`}
-            >
-              <ShoppingBag className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={handleBuyNow}
-              className="px-8 py-3.5 rounded-full bg-[#FDE68A] text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#D97706] hover:scale-105 transition-all shadow-[0_0_15px_rgba(253,230,138,0.2)]"
-            >
-              Buy Now
-            </button>
+      <div className="relative block bg-[#f7f7f7] rounded-2xl overflow-hidden mb-4 aspect-[4/5]">
+        <Link href={`/product/${shoe.id}`} className="block w-full h-full">
+          <Image
+            src={image_url || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800"}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        </Link>
+
+        {/* Overlay actions */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
+          {/* Wishlist */}
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(!wishlisted); }}
+            className={`absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm transition-all pointer-events-auto ${wishlisted ? "text-red-500" : "text-[#999]"}`}
+          >
+            <Heart className={`w-4 h-4 ${wishlisted ? "fill-red-500" : ""}`} />
+          </button>
+
+          {/* Add to Cart / Size Picker */}
+          <div className="absolute bottom-3 inset-x-3 pointer-events-auto">
+            {showSizes ? (
+              <div 
+                className="bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-300"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-black">Select Size</span>
+                  <button 
+                    onClick={() => setShowSizes(false)}
+                    className="text-[9px] font-bold text-[#999] hover:text-black"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {availableSizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={(e) => handleSizeClick(e, size)}
+                      className="w-8 h-8 rounded-lg border border-[#eee] flex items-center justify-center text-[10px] font-bold hover:bg-black hover:text-white transition-all"
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className={`w-full py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md ${
+                  added
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-black hover:text-white"
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                {added ? "Added!" : "Add to Cart"}
+              </button>
+            )}
           </div>
         </div>
-      </Link>
 
-      {/* Info Container */}
-      <div className="flex flex-col flex-1 px-2">
-        <div className="flex justify-between items-start gap-4 mb-2">
-          <h3 className="text-lg font-black tracking-tighter text-white uppercase line-clamp-1 group-hover:text-[#FDE68A] transition-colors">
+        {/* Category badge */}
+        {category && (
+          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[9px] font-bold uppercase tracking-widest text-[#555] px-3 py-1 rounded-full">
+            {category}
+          </span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-col flex-1 px-1">
+        <Link href={`/product/${shoe.id}`}>
+          <h3 className="text-[14px] font-bold text-[#111] leading-tight mb-1 line-clamp-1 group-hover:text-[#333] transition-colors">
             {name}
           </h3>
-          <span className="text-sm font-bold text-white shrink-0 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm border border-white/5">
-            ₹{price.toLocaleString()}
-          </span>
+        </Link>
+
+        {/* Star rating */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                className={`w-3 h-3 ${rating >= s ? "star-filled" : "star-empty"}`}
+              />
+            ))}
+          </div>
+          <span className="text-[10px] text-[#999] font-medium">{rating}</span>
         </div>
-        <div className="flex justify-between items-end mt-auto pt-2">
-          <p className="text-xs text-zinc-400 font-medium line-clamp-1 max-w-[70%]">
-            {description}
-          </p>
-          {category && (
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#FDE68A]/70">
-              {category}
-            </span>
-          )}
+
+        <p className="text-[12px] text-[#999] line-clamp-1 mb-3">{description}</p>
+
+        <div className="flex items-center justify-between mt-auto">
+          <span className="text-[15px] font-bold text-[#111]">₹{price.toLocaleString()}</span>
+          <Link
+            href={`/product/${shoe.id}`}
+            className="text-[10px] font-bold uppercase tracking-wider text-[#555] hover:text-black transition-colors"
+          >
+            View Details →
+          </Link>
         </div>
       </div>
     </motion.div>

@@ -31,6 +31,7 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -42,10 +43,18 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
         .eq("product_id", productId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, we don't want to spam console errors in production
+        if (error.code === "PGRST205") {
+          console.warn("Reviews table not found. Please create the 'reviews' table in Supabase.");
+          setReviews([]);
+          return;
+        }
+        throw error;
+      }
       setReviews(data || []);
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
+    } catch (err: any) {
+      console.error("Error fetching reviews:", err.message || err);
     } finally {
       setLoading(false);
     }
@@ -58,7 +67,7 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return alert("Please sign in to leave a review.");
-    
+
     setSubmitting(true);
     try {
       const { error } = await supabase.from("reviews").insert([{
@@ -70,7 +79,7 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
       }]);
 
       if (error) throw error;
-      
+
       setSuccess(true);
       setComment("");
       setRating(5);
@@ -83,107 +92,158 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
     }
   };
 
-  const averageRating = reviews.length > 0 
+  const averageRating = reviews.length > 0
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
     : "0";
 
+  // Rating distribution
+  const dist = [5, 4, 3, 2, 1].map((s) => ({
+    star: s,
+    count: reviews.filter((r) => r.rating === s).length,
+    pct: reviews.length > 0 ? (reviews.filter((r) => r.rating === s).length / reviews.length) * 100 : 0,
+  }));
+
   return (
-    <div className="py-20 border-t border-zinc-100">
-      <div className="flex flex-col lg:flex-row gap-20">
-        {/* Left: Summary & Stats */}
-        <div className="lg:w-1/3 space-y-8">
+    <div className="py-16 border-t border-[#efefef]">
+      <div className="flex flex-col lg:flex-row gap-16">
+
+        {/* Left: Summary & Form */}
+        <div className="lg:w-[340px] shrink-0 space-y-8">
           <div>
-            <h2 className="text-3xl font-black text-zinc-900 tracking-tight mb-2">Customer Reviews</h2>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star 
-                    key={s} 
-                    className={`w-5 h-5 ${Number(averageRating) >= s ? "fill-zinc-900 text-zinc-900" : "text-zinc-200"}`} 
-                  />
-                ))}
+            <h2 className="text-[22px] font-black tracking-tight text-black mb-5">Customer Reviews</h2>
+
+            {/* Big rating */}
+            <div className="flex items-end gap-4 mb-4">
+              <span className="text-[48px] font-black leading-none text-black">{averageRating}</span>
+              <div className="pb-2">
+                <div className="flex gap-0.5 mb-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-4 h-4 ${Number(averageRating) >= s ? "star-filled" : "star-empty"}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[12px] text-[#999]">Based on {reviews.length} reviews</p>
               </div>
-              <span className="text-lg font-bold">{averageRating} out of 5</span>
             </div>
-            <p className="text-zinc-500 text-sm mt-4">Based on {reviews.length} total reviews.</p>
+
+            {/* Distribution bars */}
+            <div className="space-y-2">
+              {dist.map(({ star, count, pct }) => (
+                <div key={star} className="flex items-center gap-2.5">
+                  <span className="text-[11px] font-bold text-[#555] w-4 shrink-0">{star}</span>
+                  <Star className="w-3 h-3 star-filled shrink-0" />
+                  <div className="flex-1 h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-black rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-[#999] w-4 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Review Form */}
           {user ? (
-            <div className="bg-zinc-50 p-8 rounded-[2rem] border border-zinc-100">
-              <h3 className="text-lg font-bold mb-6">Write a Review</h3>
+            <div className="bg-[#f7f7f7] p-6 rounded-[18px]">
+              <h3 className="text-[15px] font-bold mb-5 text-black">Write a Review</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <button 
-                      key={s} 
-                      type="button"
-                      onClick={() => setRating(s)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Star className={`w-6 h-6 ${rating >= s ? "fill-zinc-900 text-zinc-900" : "text-zinc-300"}`} />
-                    </button>
-                  ))}
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#999] mb-2">Your Rating</p>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(s)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(s)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <Star
+                          className={`w-6 h-6 transition-all ${
+                            (hoverRating || rating) >= s ? "star-filled" : "star-empty"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <textarea 
+                <textarea
                   required
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Share your experience with these shoes..."
-                  className="w-full px-5 py-4 bg-white border border-zinc-100 rounded-2xl focus:ring-2 focus:ring-zinc-900 transition-all text-sm h-32 resize-none"
+                  className="w-full px-4 py-3.5 bg-white border border-[#e5e5e5] rounded-[12px] focus:outline-none focus:border-black transition-all text-[13px] h-28 resize-none text-black placeholder:text-[#aaa]"
                 />
-                <button 
+                <button
                   disabled={submitting}
-                  className="w-full py-4 bg-zinc-900 text-white rounded-full font-bold text-sm hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
+                  className="w-full btn-pill btn-pill-dark py-3.5 flex items-center justify-center gap-2"
                 >
-                  {submitting ? <Loader2 className="animate-spin w-4 h-4" /> : success ? <><CheckCircle2 className="w-4 h-4" /> Posted!</> : "Post Review"}
+                  {submitting ? (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                  ) : success ? (
+                    <><CheckCircle2 className="w-4 h-4" /> Posted!</>
+                  ) : (
+                    "Post Review"
+                  )}
                 </button>
               </form>
             </div>
           ) : (
-            <div className="bg-zinc-50 p-8 rounded-[2rem] text-center">
-              <MessageSquare className="w-8 h-8 text-zinc-300 mx-auto mb-4" />
-              <p className="text-sm text-zinc-500 font-medium">Please sign in to share your review with the community.</p>
+            <div className="bg-[#f7f7f7] p-6 rounded-[18px] text-center">
+              <MessageSquare className="w-8 h-8 text-[#ccc] mx-auto mb-3" />
+              <p className="text-[13px] text-[#777]">Sign in to share your review with the community.</p>
             </div>
           )}
         </div>
 
         {/* Right: Reviews List */}
-        <div className="lg:w-2/3 space-y-10">
+        <div className="flex-1 space-y-8">
           {loading ? (
-            <div className="flex justify-center py-20"><Loader2 className="animate-spin text-zinc-200" /></div>
+            <div className="flex justify-center py-16">
+              <Loader2 className="animate-spin text-[#ccc]" />
+            </div>
           ) : reviews.length > 0 ? (
-            <div className="grid gap-10">
+            <div className="divide-y divide-[#efefef]">
               {reviews.map((review) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  key={review.id} 
-                  className="space-y-4"
+                  key={review.id}
+                  className="py-6 space-y-3"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-400">
-                        <User className="w-5 h-5" />
+                      <div className="w-9 h-9 bg-[#f0f0f0] rounded-full flex items-center justify-center text-[#999]">
+                        <User className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-zinc-900">{review.user_email.split('@')[0]}</p>
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(review.created_at).toLocaleDateString()}</p>
+                        <p className="text-[13px] font-bold text-black">{review.user_email.split("@")[0]}</p>
+                        <p className="text-[10px] text-[#aaa] font-medium">
+                          {new Date(review.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`w-3 h-3 ${review.rating >= s ? "fill-zinc-900 text-zinc-900" : "text-zinc-200"}`} />
+                        <Star
+                          key={s}
+                          className={`w-3.5 h-3.5 ${review.rating >= s ? "star-filled" : "star-empty"}`}
+                        />
                       ))}
                     </div>
                   </div>
-                  <p className="text-zinc-600 leading-relaxed text-sm pl-1">{review.comment}</p>
+                  <p className="text-[13px] text-[#555] leading-relaxed">{review.comment}</p>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 text-zinc-300">
-              <p className="text-sm font-medium italic">No reviews yet. Be the first to share your thoughts!</p>
+            <div className="text-center py-20 text-[#ccc]">
+              <p className="text-[14px] font-medium text-[#aaa]">No reviews yet. Be the first!</p>
             </div>
           )}
         </div>

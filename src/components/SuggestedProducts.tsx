@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ShoeCard from "./ShoeCard";
 import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 
 interface Shoe {
   id: number;
@@ -14,17 +15,13 @@ interface Shoe {
   category?: string;
 }
 
-export default function SuggestedProducts({ currentId, category }: { currentId: string, category?: string }) {
+export default function SuggestedProducts({ currentId, category }: { currentId: string; category?: string }) {
   const [suggestions, setSuggestions] = useState<Shoe[]>([]);
 
   useEffect(() => {
     async function fetchSuggestions() {
       try {
-        let query = supabase
-          .from("shoes")
-          .select("*")
-          .neq("id", currentId)
-          .limit(4);
+        let query = supabase.from("shoes").select("*").neq("id", currentId).limit(4);
 
         if (category) {
           query = query.eq("category", category);
@@ -32,17 +29,16 @@ export default function SuggestedProducts({ currentId, category }: { currentId: 
 
         const { data, error } = await query;
         if (error) throw error;
-        
-        // If not enough products in same category, fetch random ones
+
         if (!data || data.length < 2) {
-            const { data: fallbackData } = await supabase
-                .from("shoes")
-                .select("*")
-                .neq("id", currentId)
-                .limit(4);
-            setSuggestions(fallbackData || []);
+          const { data: fallbackData } = await supabase
+            .from("shoes")
+            .select("*")
+            .neq("id", currentId)
+            .limit(4);
+          setSuggestions(fallbackData || []);
         } else {
-            setSuggestions(data);
+          setSuggestions(data);
         }
       } catch (err) {
         console.error("Error fetching suggestions:", err);
@@ -55,19 +51,27 @@ export default function SuggestedProducts({ currentId, category }: { currentId: 
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="mt-24 pt-24 border-t border-zinc-100">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-12">
-        <h2 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase">
-          Curated<br />For You.
-        </h2>
-        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 max-w-xs text-right">
-          More selections from our atelier collection.
-        </p>
+    <div className="mt-20 pt-16 border-t border-[#efefef]">
+      <div className="flex justify-between items-end mb-10">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#999] block mb-2">Related Products</span>
+          <h2 className="text-[26px] font-black tracking-tight text-black">You May Also Like</h2>
+        </div>
+        <a href="/#gallery" className="text-[12px] font-bold text-[#555] hover:text-black flex items-center gap-1 transition-colors">
+          View all <ChevronRight className="w-3.5 h-3.5" />
+        </a>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {suggestions.map((shoe) => (
-          <ShoeCard key={shoe.id} shoe={shoe} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+        {suggestions.map((shoe, i) => (
+          <motion.div
+            key={shoe.id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.06 }}
+          >
+            <ShoeCard shoe={shoe} />
+          </motion.div>
         ))}
       </div>
     </div>

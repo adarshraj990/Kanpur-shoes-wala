@@ -24,8 +24,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
+        const { error } = await supabase.auth.signUp({
+          email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -50,67 +50,80 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-[#050505]/80 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-black/25 backdrop-blur-sm z-[100]"
           />
+
+          {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 sm:p-10 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[110]"
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[400px] bg-white border border-[#e5e5e5] p-8 rounded-[24px] shadow-xl z-[110]"
           >
-            <div className="flex justify-between items-center mb-10">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-white">
-                  {isSignUp ? "Create Account" : "Access Account"}
+                <h2 className="text-[22px] font-black tracking-tight text-black">
+                  {isSignUp ? "Create Account" : "Sign In"}
                 </h2>
-                <p className="text-[#FDE68A] text-xs font-bold uppercase tracking-[0.2em] mt-2">
-                  {isSignUp ? "Join the Atelier." : "Welcome back."}
+                <p className="text-[12px] text-[#999] mt-1">
+                  {isSignUp ? "Join the KSW community." : "Welcome back."}
                 </p>
               </div>
-              <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+              <button
+                onClick={onClose}
+                className="p-2 text-[#999] hover:text-black hover:bg-[#f7f7f7] rounded-xl transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Email Address</label>
+            {/* Form */}
+            <form onSubmit={handleAuth} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#999]">
+                  Email Address
+                </label>
                 <div className="relative">
-                  <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#aaa]" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 bg-transparent border-b-2 border-white/10 focus:outline-none focus:border-[#FDE68A] transition-all font-bold text-sm text-white placeholder:text-zinc-600 placeholder:font-medium"
+                    className="w-full pl-10 pr-4 py-3 bg-[#f7f7f7] border border-[#e5e5e5] rounded-[12px] focus:outline-none focus:border-black transition-all text-[13px] text-black placeholder:text-[#bbb]"
                     placeholder="name@example.com"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Password</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#999]">
+                  Password
+                </label>
                 <div className="relative">
-                  <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#aaa]" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 bg-transparent border-b-2 border-white/10 focus:outline-none focus:border-[#FDE68A] transition-all font-bold text-sm text-white placeholder:text-zinc-600 placeholder:font-medium"
+                    className="w-full pl-10 pr-4 py-3 bg-[#f7f7f7] border border-[#e5e5e5] rounded-[12px] focus:outline-none focus:border-black transition-all text-[13px] text-black placeholder:text-[#bbb]"
                     placeholder="••••••••"
                   />
                 </div>
                 {!isSignUp && (
-                  <div className="flex justify-end pt-2">
-                    <a 
-                      href="/forgot-password" 
-                      className="text-[9px] font-bold text-zinc-500 hover:text-[#FDE68A] transition-colors uppercase tracking-[0.2em]"
+                  <div className="flex justify-end">
+                    <a
+                      href="/forgot-password"
+                      className="text-[11px] font-bold text-[#999] hover:text-black transition-colors underline underline-offset-2"
                       onClick={onClose}
                     >
                       Forgot Password?
@@ -120,13 +133,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               {error && (
-                <p className="text-red-400 text-xs font-bold uppercase tracking-widest">{error}</p>
+                <p className="text-red-500 text-[12px] font-medium bg-red-50 px-4 py-2.5 rounded-xl">
+                  {error}
+                </p>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 mt-4 bg-[#FDE68A] text-black rounded-full font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#D97706] hover:scale-[1.02] transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(253,230,138,0.2)]"
+                className="w-full btn-pill btn-pill-dark py-4 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -139,12 +154,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <div className="mt-6 pt-5 border-t border-[#efefef] text-center">
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#FDE68A] transition-colors"
+                className="text-[12px] text-[#777] hover:text-black transition-colors"
               >
-                {isSignUp ? "Already a member? Sign In" : "New here? Create Account"}
+                {isSignUp ? "Already have an account? " : "Don't have an account? "}
+                <span className="font-bold underline underline-offset-2">
+                  {isSignUp ? "Sign In" : "Create Account"}
+                </span>
               </button>
             </div>
           </motion.div>
