@@ -1,197 +1,280 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ShoppingBag, ShieldCheck, Truck, Lock, 
+  MapPin, Phone, User, CreditCard, ArrowRight,
+  ChevronLeft, Loader2
+} from "lucide-react";
+import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
-import { ArrowLeft, ShieldCheck, Loader2, Lock, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Script from "next/script";
-import Image from "next/image";
 
-const inputCls = "w-full px-4 py-4 bg-[#0a0a0a] border-b-2 border-white/10 focus:outline-none focus:bg-white/5 focus:border-[#FDE68A] transition-all text-sm font-bold text-white placeholder:text-zinc-600 placeholder:font-medium";
-const labelCls = "text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 block";
-
-export default function CheckoutPage() {
+export default function Page() {
+  const router = useRouter();
   const { cart, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
-  const router = useRouter();
-
-  const [formData, setFormData] = useState({ fullName: "", phone: "", address: "", city: "", pincode: "" });
+  
   const [loading, setLoading] = useState(false);
-
-  const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_Skn8pohIYICSOS";
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    pincode: ""
+  });
 
   useEffect(() => {
-    if (cart.length === 0) router.push("/");
-  }, [cart, router]);
+    if (cart.length === 0) {
+      router.push("/");
+    }
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.user_metadata?.full_name || "",
+        email: user.email || ""
+      }));
+    }
+  }, [cart, router, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const createOrderRecord = async (paymentId: string) => {
     try {
-      const orderEntries = cart.map(item => ({
-        product_id: item.id,
-        user_id: user?.id || null,
-        amount: item.price * item.quantity,
-        customer_name: formData.fullName,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        pincode: formData.pincode,
-        payment_id: paymentId,
-        status: "success",
-        created_at: new Date().toISOString(),
-      }));
+      const { error } = await supabase.from("orders").insert([
+        {
+          user_id: user?.id || null,
+          customer_name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          pincode: formData.pincode,
+          amount: totalPrice,
+          payment_id: paymentId,
+          status: "paid",
+          // For now, storing the first shoe ID if multiple items exist, 
+          // or you might want to create an order_items table later
+          shoe_id: cart[0]?.id
+        }
+      ]);
 
-      const { error } = await supabase.from("orders").insert(orderEntries);
       if (error) throw error;
-      clearCart();
-      router.push("/success");
+      return true;
     } catch (err) {
-      console.error("Error saving order:", err);
-      alert("Order placed but failed to sync. Contact support.");
+      console.error("Order record error:", err);
+      return false;
     }
   };
 
-  const handlePayment = async () => {
-    if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.pincode) {
-      alert("Please fill all delivery details.");
-      return;
-    }
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
-    const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: totalPrice * 100,
-      currency: "INR",
-      name: "KANPUR SHOES WALA",
-      description: "Premium Footwear Collection",
-      handler: function (response: any) {
-        createOrderRecord(response.razorpay_payment_id);
-      },
-      prefill: { name: formData.fullName, contact: formData.phone, email: user?.email || "" },
-      theme: { color: "#FDE68A" },
-    };
+    try {
+      // 1. Initialize Razorpay
+      const res = await fetch("/api/razorpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: totalPrice }),
+      });
+      const data = await res.json();
 
-    const rzp = new (window as any).Razorpay(options);
-    rzp.on("payment.failed", () => { setLoading(false); alert("Payment failed. Please try again."); });
-    rzp.open();
-    setLoading(false);
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: "INR",
+        name: "Kanpur Shoes Wala",
+        description: "Premium Footwear Purchase",
+        order_id: data.id,
+        handler: async function (response: any) {
+          const success = await createOrderRecord(response.razorpay_payment_id);
+          if (success) {
+            clearCart();
+            router.push("/success");
+          } else {
+            alert("Payment successful but order recording failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        theme: { color: "#000000" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (cart.length === 0) return null;
-
   return (
-    <div className="min-h-screen bg-[#050505] text-[#FAFAFA] pt-12 pb-24 px-6 sm:px-12 selection:bg-[#FDE68A] selection:text-black">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-
-      <div className="max-w-[1200px] mx-auto relative z-10">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-[#FDE68A] transition-colors mb-12 text-[10px] font-bold uppercase tracking-[0.2em]">
-          <ArrowLeft className="w-3 h-3" /> Return to Shop
+    <main className="min-h-screen bg-[#050505] text-white font-inter selection:bg-[#FF4F00] selection:text-white pb-20">
+      {/* Header */}
+      <div className="pt-12 px-6 sm:px-12 max-w-[1400px] mx-auto flex items-center justify-between mb-16">
+        <Link href="/" className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">
+          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Store
         </Link>
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase text-white">Secure<br /><span className="text-gradient-gold">Checkout.</span></h1>
-          <div className="flex items-center gap-2 text-[#FDE68A]/70 text-xs font-bold uppercase tracking-[0.2em] bg-[#FDE68A]/10 px-4 py-2 rounded-full border border-[#FDE68A]/20">
-            <Lock className="w-4 h-4" /> 256-bit Encryption
-          </div>
+        <div className="text-xl font-black tracking-tighter">
+          KANPUR <span className="text-[#FF4F00]">SHOES</span> WALA
         </div>
+        <div className="w-20"></div> {/* Spacer */}
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
-          
-          {/* Left: Form */}
+      <div className="px-6 sm:px-12 max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          {/* Checkout Form */}
           <div className="lg:col-span-7 space-y-12">
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] mb-8 pb-4 border-b border-white/5 text-white">Shipping Details</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className={labelCls}>Full Legal Name</label>
-                  <input name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputCls} placeholder="John Doe" />
+              <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase mb-4">Checkout</h1>
+              <p className="text-zinc-500 font-medium">Complete your order by providing your shipping details.</p>
+            </div>
+
+            <form onSubmit={handleCheckout} className="space-y-10">
+              {/* Shipping Information */}
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[#FF4F00]">
+                  <MapPin className="w-4 h-4" />
+                  Shipping Information
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Full Name</label>
+                    <input 
+                      required name="name" value={formData.name} onChange={handleInputChange}
+                      className="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl px-6 py-4 focus:border-[#FF4F00] focus:ring-1 focus:ring-[#FF4F00] transition-all outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Phone Number</label>
+                    <input 
+                      required name="phone" value={formData.phone} onChange={handleInputChange}
+                      className="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl px-6 py-4 focus:border-[#FF4F00] focus:ring-1 focus:ring-[#FF4F00] transition-all outline-none" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Address</label>
+                  <textarea 
+                    required name="address" value={formData.address} onChange={handleInputChange} rows={3}
+                    className="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl px-6 py-4 focus:border-[#FF4F00] focus:ring-1 focus:ring-[#FF4F00] transition-all outline-none resize-none" 
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className={labelCls}>Mobile Number</label>
-                    <input name="phone" value={formData.phone} onChange={handleInputChange} className={inputCls} placeholder="+91" />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">City</label>
+                    <input 
+                      required name="city" value={formData.city} onChange={handleInputChange}
+                      className="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl px-6 py-4 focus:border-[#FF4F00] focus:ring-1 focus:ring-[#FF4F00] transition-all outline-none" 
+                    />
                   </div>
-                  <div>
-                    <label className={labelCls}>Postal Code</label>
-                    <input name="pincode" value={formData.pincode} onChange={handleInputChange} className={inputCls} placeholder="6-digit PIN" />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pincode</label>
+                    <input 
+                      required name="pincode" value={formData.pincode} onChange={handleInputChange}
+                      className="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl px-6 py-4 focus:border-[#FF4F00] focus:ring-1 focus:ring-[#FF4F00] transition-all outline-none" 
+                    />
                   </div>
                 </div>
+              </section>
 
-                <div>
-                  <label className={labelCls}>Delivery Address</label>
-                  <textarea name="address" rows={2} value={formData.address} onChange={handleInputChange} className={inputCls + " resize-none"} placeholder="Street, Apartment, Locality..." />
+              {/* Payment Info */}
+              <section className="space-y-6 pt-6 border-t border-white/5">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[#FF4F00]">
+                  <CreditCard className="w-4 h-4" />
+                  Secure Payment
                 </div>
-
-                <div>
-                  <label className={labelCls}>City / District</label>
-                  <input name="city" value={formData.city} onChange={handleInputChange} className={inputCls} placeholder="e.g. Kanpur" />
+                <div className="bg-[#111] border border-[#1A1A1A] rounded-[2.5rem] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="space-y-1 text-center sm:text-left">
+                    <p className="text-sm font-bold">Safe & Encrypted</p>
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Powered by Razorpay</p>
+                  </div>
+                  <div className="flex gap-4 grayscale opacity-50">
+                    <div className="h-6 w-10 bg-white/10 rounded"></div>
+                    <div className="h-6 w-10 bg-white/10 rounded"></div>
+                    <div className="h-6 w-10 bg-white/10 rounded"></div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </section>
 
-            <div className="bg-white/5 p-6 rounded-3xl flex items-start gap-4 border border-white/10">
-              <ShieldCheck className="w-6 h-6 text-[#FDE68A] shrink-0" />
-              <div>
-                <h4 className="font-bold text-sm uppercase tracking-[0.1em] mb-1 text-white">Buyer Protection</h4>
-                <p className="text-xs text-zinc-400 font-medium leading-relaxed">Your payment information is processed securely through Razorpay. We do not store credit card details.</p>
-              </div>
-            </div>
+              <button 
+                type="submit" disabled={loading}
+                className="w-full py-6 bg-[#FF4F00] text-white rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-[#E64600] transition-all shadow-[0_20px_40px_rgba(255,79,0,0.2)] flex items-center justify-center gap-3"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Pay ₹{totalPrice.toLocaleString()} <ArrowRight className="w-4 h-4" /></>}
+              </button>
+            </form>
           </div>
 
-          {/* Right: Order Summary */}
-          <div className="lg:col-span-5 relative">
-            <div className="sticky top-12 bg-[#0a0a0a] p-8 rounded-[2.5rem] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] mb-8 text-white">Order Summary</h2>
-
-              <div className="space-y-6 mb-8 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
+          {/* Order Summary */}
+          <div className="lg:col-span-5">
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-[3rem] p-10 sticky top-12 space-y-10">
+              <h3 className="text-xl font-black uppercase tracking-tight">Order Summary</h3>
+              
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    <div className="relative w-20 h-20 bg-[#050505] rounded-2xl border border-white/5 overflow-hidden shrink-0">
-                      <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+                  <div key={item.cartItemId} className="flex gap-6 group">
+                    <div className="w-20 h-20 bg-[#1A1A1A] rounded-2xl overflow-hidden border border-[#2A2A2A] flex-shrink-0">
+                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     </div>
-                    <div className="flex flex-col justify-center flex-1">
-                      <h3 className="text-xs font-bold uppercase tracking-tight line-clamp-1 text-white">{item.name}</h3>
-                      <p className="text-[10px] text-[#FDE68A] font-bold uppercase tracking-widest mt-1 bg-[#FDE68A]/10 w-fit px-2 py-0.5 rounded">Qty {item.quantity}</p>
-                      <span className="font-black text-sm mt-2 text-white">₹{(item.price * item.quantity).toLocaleString()}</span>
+                    <div className="flex-1 space-y-1">
+                      <h4 className="font-bold text-white leading-tight">{item.name}</h4>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600">{item.category || "Footwear"} • Size {item.selectedSize || "N/A"}</p>
+                      <div className="flex justify-between items-end mt-2">
+                        <p className="text-sm font-bold text-[#FF4F00]">₹{item.price.toLocaleString()}</p>
+                        <p className="text-[10px] font-black text-zinc-500">Qty: {item.quantity}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-white/10">
-                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
+              <div className="space-y-4 pt-8 border-t border-white/5">
+                <div className="flex justify-between text-sm font-medium text-zinc-500">
                   <span>Subtotal</span>
                   <span className="text-white">₹{totalPrice.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
+                <div className="flex justify-between text-sm font-medium text-zinc-500">
                   <span>Shipping</span>
-                  <span className="text-[#FDE68A]">Complimentary</span>
+                  <span className="text-[#FF4F00] font-black uppercase tracking-widest text-[10px]">Free</span>
                 </div>
-                <div className="flex justify-between items-end pt-4 border-t border-white/10 mt-4">
-                  <span className="text-sm font-bold uppercase tracking-[0.2em] text-white">Total Due</span>
-                  <span className="text-3xl font-black text-white">₹{totalPrice.toLocaleString()}</span>
+                <div className="flex justify-between text-xl font-black pt-4 border-t border-white/5">
+                  <span>Total</span>
+                  <span className="text-[#FF4F00]">₹{totalPrice.toLocaleString()}</span>
                 </div>
               </div>
 
-              <button
-                onClick={handlePayment}
-                disabled={loading}
-                className="w-full mt-10 py-5 bg-[#FDE68A] text-black rounded-full font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-[#D97706] transition-all shadow-[0_0_15px_rgba(253,230,138,0.2)] hover:scale-[1.02] disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Pay Securely <ArrowRight className="w-4 h-4" /></>}
-              </button>
+              <div className="flex flex-col gap-4 pt-4">
+                <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <ShieldCheck className="w-5 h-5 text-[#FF4F00]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-tight">100% Authentic Product Guarantee</span>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <Truck className="w-5 h-5 text-[#FF4F00]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-tight">Express Delivery across India</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

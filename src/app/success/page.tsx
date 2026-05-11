@@ -6,7 +6,7 @@ import { CheckCircle, ArrowRight, ShoppingBag, Truck, Package, MapPin, Phone } f
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-export default function SuccessPage() {
+export default function Page() {
   const [latestOrder, setLatestOrder] = useState<any>(null);
 
   useEffect(() => {

@@ -10,16 +10,18 @@ export interface Shoe {
   image_url: string;
   description: string;
   category?: string;
+  selectedSize?: string;
 }
 
-interface CartItem extends Shoe {
+export interface CartItem extends Shoe {
   quantity: number;
+  cartItemId: string; // Unique ID for cart item combining id and selectedSize
 }
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (shoe: Shoe) => void;
-  removeFromCart: (id: number) => void;
+  removeFromCart: (cartItemIdOrId: string | number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -35,18 +37,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (shoe: Shoe) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === shoe.id);
+      const cartItemId = `${shoe.id}-${shoe.selectedSize || 'default'}`;
+      const existing = prev.find((item) => item.cartItemId === cartItemId);
       if (existing) {
         return prev.map((item) =>
-          item.id === shoe.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.cartItemId === cartItemId ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...shoe, quantity: 1 }];
+      return [...prev, { ...shoe, quantity: 1, cartItemId }];
     });
   };
 
-  const removeFromCart = (id: number) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  const removeFromCart = (cartItemIdOrId: string | number) => {
+    setCart((prev) => prev.filter((item) => 
+      typeof cartItemIdOrId === 'string' 
+        ? item.cartItemId !== cartItemIdOrId 
+        : item.id !== cartItemIdOrId
+    ));
   };
 
   const clearCart = () => setCart([]);
@@ -57,7 +64,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
    * then navigates to /checkout. Cart is restored to original on clearCart().
    */
   const buyNow = (shoe: Shoe) => {
-    setCart([{ ...shoe, quantity: 1 }]);
+    const cartItemId = `${shoe.id}-${shoe.selectedSize || 'default'}`;
+    setCart([{ ...shoe, quantity: 1, cartItemId }]);
     router.push("/checkout");
   };
 

@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, ShoppingBag, ShieldCheck, 
-  Truck, RotateCcw, Loader2, ChevronRight, ChevronLeft 
+  Truck, RotateCcw, Loader2, ChevronRight, ChevronLeft, Check
 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -25,6 +25,10 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  
+  // Size Selection State
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
 
   useEffect(() => {
     const fetchShoe = async () => {
@@ -61,6 +65,20 @@ export default function ProductDetailPage() {
   const gallery = shoe.image_urls && shoe.image_urls.length > 0 
     ? shoe.image_urls 
     : [shoe.image_url];
+
+  const availableSizes = shoe.sizes && shoe.sizes.length > 0 ? shoe.sizes : ["6", "7", "8", "9", "10", "11"];
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      setSizeError(true);
+      // Remove error animation after 2s
+      setTimeout(() => setSizeError(false), 2000);
+      return;
+    }
+    
+    addToCart({ ...shoe, selectedSize });
+    setIsCartOpen(true);
+  };
 
   return (
     <main className="min-h-screen bg-white text-black font-inter selection:bg-black selection:text-white">
@@ -146,26 +164,62 @@ export default function ProductDetailPage() {
               {shoe.description}
             </p>
 
-            <div className="space-y-4">
+            {/* New Premium Size Selector */}
+            <motion.div 
+              animate={sizeError ? { x: [-10, 10, -10, 10, 0] } : {}}
+              transition={{ duration: 0.4 }}
+              className={`space-y-4 p-6 rounded-3xl transition-colors duration-300 ${sizeError ? 'bg-red-50 border border-red-200' : 'bg-zinc-50 border border-transparent'}`}
+            >
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Select Size (UK)</span>
-                <button className="text-[10px] font-bold uppercase tracking-widest text-zinc-900 underline underline-offset-4">Size Guide</button>
+                <span className={`text-xs font-bold uppercase tracking-widest ${sizeError ? 'text-red-500' : 'text-zinc-500'}`}>
+                  {sizeError ? "Please Select a Size" : "Select Size (UK)"}
+                </span>
+                <button className="text-[10px] font-bold uppercase tracking-widest text-zinc-900 underline underline-offset-4 hover:text-zinc-600 transition-colors">
+                  Size Guide
+                </button>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                {["7", "8", "9", "10"].map((size) => (
-                  <button key={size} className="py-4 border border-zinc-200 rounded-2xl text-sm font-bold hover:border-zinc-900 transition-all">
-                    {size}
-                  </button>
-                ))}
+              
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                {availableSizes.map((size: string) => {
+                  const isSelected = selectedSize === size;
+                  return (
+                    <button 
+                      key={size}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        setSizeError(false);
+                      }}
+                      className={`relative py-4 rounded-2xl text-sm font-bold transition-all duration-300 overflow-hidden ${
+                        isSelected 
+                          ? "bg-black text-white shadow-lg scale-105" 
+                          : "bg-white text-zinc-900 border border-zinc-200 hover:border-black hover:bg-zinc-50"
+                      }`}
+                    >
+                      <span className="relative z-10">{size}</span>
+                      {isSelected && (
+                        <motion.div 
+                          layoutId="activeSize"
+                          className="absolute inset-0 bg-black rounded-2xl"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            </motion.div>
 
             <button 
-              onClick={() => { addToCart(shoe); setIsCartOpen(true); }}
-              className="w-full py-5 bg-black text-white rounded-full font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-800 transition-colors"
+              onClick={handleAddToCart}
+              className={`w-full py-6 rounded-full font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl hover:shadow-2xl ${
+                !selectedSize && sizeError 
+                  ? "bg-red-600 text-white" 
+                  : "bg-black text-white hover:bg-zinc-900 hover:-translate-y-1"
+              }`}
             >
               <ShoppingBag className="w-4 h-4" />
-              Add to Bag
+              {sizeError ? "Select Size First" : "Add to Bag"}
             </button>
 
             {/* Product Details Accordion */}

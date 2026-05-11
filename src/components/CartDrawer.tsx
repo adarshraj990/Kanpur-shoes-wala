@@ -69,7 +69,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 cart.map((item) => (
                   <motion.div
                     layout
-                    key={item.id}
+                    key={item.cartItemId}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: 20 }}
@@ -85,9 +85,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <span className="font-bold text-white text-sm mb-3">₹{(item.price * item.quantity).toLocaleString()}</span>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[#FDE68A] font-bold uppercase tracking-widest bg-[#FDE68A]/10 px-2 py-1 rounded">Qty {item.quantity}</span>
+                        <div className="flex gap-2">
+                          <span className="text-[10px] text-[#FDE68A] font-bold uppercase tracking-widest bg-[#FDE68A]/10 px-2 py-1 rounded">Qty {item.quantity}</span>
+                          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">Size {item.selectedSize || "N/A"}</span>
+                        </div>
                         <button
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeFromCart(item.cartItemId)}
                           className="text-zinc-500 hover:text-red-400 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest transition-colors"
                         >
                           <Trash2 className="w-3 h-3" />
