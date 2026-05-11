@@ -1,8 +1,3 @@
-/* MASTER_LOG - APRIL 27, 2026 
-- Project Status: Advanced E-commerce Features.
-- Last Action: Created high-end Product Detail Page with image gallery.
-*/
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -30,6 +25,7 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchShoe = async () => {
@@ -56,7 +52,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-10 h-10 animate-spin text-zinc-900" />
+        <div className="w-8 h-8 bg-black animate-pulse rounded-sm"></div>
       </div>
     );
   }
@@ -66,23 +62,23 @@ export default function ProductDetailPage() {
     : [shoe.image_url];
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white text-black font-inter selection:bg-black selection:text-white">
       <Navbar onCartClick={() => setIsCartOpen(true)} onAuthClick={() => setIsAuthOpen(true)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
-      <div className="pt-24 pb-20 px-6 sm:px-10 lg:px-20 max-w-[1800px] mx-auto">
+      <div className="pt-32 pb-24 px-6 sm:px-12 max-w-[1400px] mx-auto">
         {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 mb-10">
-          <Link href="/" className="hover:text-zinc-900 transition-colors">Shop</Link>
+        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-12">
+          <Link href="/" className="hover:text-black transition-colors">Shop</Link>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-zinc-900">{shoe.name}</span>
+          <span className="text-black">{shoe.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
           {/* Image Gallery */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="relative aspect-[4/5] bg-[#F6F6F6] rounded-[2.5rem] overflow-hidden group">
+            <div className="relative aspect-[4/5] bg-zinc-100 rounded-3xl overflow-hidden group border border-zinc-200/50">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeImage}
@@ -96,16 +92,16 @@ export default function ProductDetailPage() {
               </AnimatePresence>
               
               {gallery.length > 1 && (
-                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : gallery.length - 1))}
-                    className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white"
+                    className="p-4 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => setActiveImage((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
-                    className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white"
+                    className="p-4 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-colors"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -120,7 +116,7 @@ export default function ProductDetailPage() {
                   key={i}
                   onClick={() => setActiveImage(i)}
                   className={`relative w-24 aspect-square rounded-2xl overflow-hidden bg-zinc-50 border-2 transition-all flex-shrink-0 ${
-                    activeImage === i ? "border-zinc-900" : "border-transparent"
+                    activeImage === i ? "border-black" : "border-transparent hover:border-zinc-300"
                   }`}
                 >
                   <img src={url} className="w-full h-full object-cover" />
@@ -130,67 +126,77 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Info */}
-          <div className="lg:col-span-5 space-y-10">
-            <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-zinc-900 leading-[1.1]">
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-12">
+            <div className="space-y-6">
+              {shoe.category && (
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  {shoe.category}
+                </span>
+              )}
+              <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase leading-[0.9]">
                 {shoe.name}
               </h1>
-              <div className="flex items-center gap-4">
-                <span className="text-2xl font-bold text-zinc-900">₹{shoe.price.toLocaleString()}</span>
-                <span className="px-3 py-1 bg-zinc-100 text-[10px] font-bold uppercase tracking-widest rounded-full">In Stock</span>
+              <div className="flex items-center gap-6">
+                <span className="text-3xl font-black">₹{shoe.price.toLocaleString()}</span>
               </div>
             </div>
 
-            <p className="text-lg text-zinc-500 leading-relaxed">
+            <p className="text-base text-zinc-500 font-medium leading-relaxed">
               {shoe.description}
             </p>
 
-            {/* Size Selector (Mock) */}
+            {/* Size Selector */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Select Size (UK)</span>
-                <button className="text-[10px] font-bold uppercase tracking-widest text-zinc-900 underline underline-offset-4">Size Guide</button>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size (UK)</span>
+                <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {["7", "8", "9", "10"].map((size) => (
-                  <button key={size} className="py-4 border border-zinc-200 rounded-2xl text-sm font-bold hover:border-zinc-900 transition-all">
+                {(shoe.sizes && shoe.sizes.length > 0 ? shoe.sizes : ["6", "7", "8", "9", "10", "11"]).map((size: string) => (
+                  <button 
+                    key={size} 
+                    onClick={() => setSelectedSize(size)}
+                    className={`py-4 border-2 rounded-xl text-sm font-bold transition-all ${
+                      selectedSize === size 
+                        ? "border-black bg-black text-white" 
+                        : "border-zinc-200 hover:border-black"
+                    }`}
+                  >
                     {size}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-4 pt-6">
-              <button 
-                onClick={() => { addToCart(shoe); setIsCartOpen(true); }}
-                className="w-full py-5 bg-zinc-900 text-white rounded-full font-bold text-lg flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200 active:scale-[0.98]"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                Add to Bag
-              </button>
-            </div>
+            <button 
+              onClick={() => { addToCart(shoe); setIsCartOpen(true); }}
+              className="w-full py-5 bg-black text-white rounded-full font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-800 transition-colors"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Add to Bag
+            </button>
 
-            {/* Product Details Accordin */}
-            <div className="space-y-6 pt-10 border-t border-zinc-100">
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-900">Materials & Care</h4>
-                <p className="text-sm text-zinc-500 leading-relaxed">
+            {/* Product Details Accordion */}
+            <div className="space-y-8 pt-8 border-t border-zinc-100">
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-black">Materials & Care</h4>
+                <p className="text-sm text-zinc-500 leading-relaxed font-medium">
                   {shoe.detailed_description || "Handcrafted with premium materials in Kanpur. Designed for long-lasting comfort and timeless style. Wipe clean with a soft, damp cloth."}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6">
-                <div className="flex flex-col items-center text-center gap-2">
-                  <Truck className="w-5 h-5 text-zinc-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Free Shipping</span>
+                <div className="flex flex-col items-center justify-center p-6 bg-zinc-50 rounded-2xl gap-3">
+                  <Truck className="w-5 h-5 text-black" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-center">Free Shipping</span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-2">
-                  <RotateCcw className="w-5 h-5 text-zinc-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">7 Days Return</span>
+                <div className="flex flex-col items-center justify-center p-6 bg-zinc-50 rounded-2xl gap-3">
+                  <RotateCcw className="w-5 h-5 text-black" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-center">7 Days Return</span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-zinc-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Authentic</span>
+                <div className="flex flex-col items-center justify-center p-6 bg-zinc-50 rounded-2xl gap-3">
+                  <ShieldCheck className="w-5 h-5 text-black" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-center">Authentic</span>
                 </div>
               </div>
             </div>

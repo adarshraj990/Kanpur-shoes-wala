@@ -39,8 +39,8 @@ export const updateSession = async (request: NextRequest) => {
   } = await supabase.auth.getUser();
 
   const ADMIN_EMAILS = [
-    'bhaikumarark99@gmail.com',
-    'adarshfouryt@gmail.com'
+    'adarshfouryt@gmail.com',
+    'bhaikumarark99@gmail.com'
   ];
 
   // Protect /malik route (formerly /admin)

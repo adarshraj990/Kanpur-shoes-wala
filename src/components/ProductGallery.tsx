@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ShoeCard from "./ShoeCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 interface Shoe {
   id: number;
@@ -13,7 +13,6 @@ interface Shoe {
   description: string;
   image_url: string;
   category?: string;
-  brand?: string;
 }
 
 const CATEGORIES = ["All", "Premium Shoes", "Sneakers", "Chelsea Boots", "Slides & Sandals", "Running & Sports", "Casual Wear"];
@@ -53,109 +52,67 @@ export default function ProductGallery() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#121212]"></div>
+        <div className="w-8 h-8 bg-[#FDE68A] animate-pulse rounded-sm shadow-[0_0_15px_#FDE68A]"></div>
       </div>
     );
   }
 
   return (
-    <section className="py-24 sm:py-32 px-6 sm:px-10 lg:px-12 max-w-[1400px] mx-auto">
-      {/* ── High-Impact Typography ── */}
-      <div className="flex flex-col mb-16 sm:mb-24 gap-12">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
-          <div className="max-w-2xl space-y-6">
-            <div className="space-y-3">
-              <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-[12px] font-black uppercase tracking-[0.3em] text-[#FF4F00]"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                Artisanal Excellence
-              </motion.p>
-              <motion.h2
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-5xl sm:text-7xl font-black text-[#121212] tracking-tighter leading-[0.9]"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                The<br />Collection
-              </motion.h2>
-            </div>
-            <motion.p
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-[#121212]/50 text-lg sm:text-xl font-medium leading-relaxed max-w-lg"
-            >
-              Born in Kanpur. Crafted for the global nomad. A fusion of heritage craftsmanship and modern silhouette.
-            </motion.p>
-          </div>
-
-          {/* ── Search Experience ── */}
-          <div className="relative w-full lg:w-[400px] group">
-            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#121212]/40 group-focus-within:text-[#FF4F00] transition-colors z-10">
-              <Search className="w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              placeholder="Find your aesthetic..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-15 pr-14 py-5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-[#FF4F00]/5 focus:border-[#FF4F00] transition-all text-[15px] font-medium text-[#121212] placeholder:text-[#121212]/30 shadow-inner"
-            />
-            <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-3 z-10">
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="p-1 text-[#121212]/20 hover:text-[#FF4F00] transition-colors rounded-full"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-              <div className="w-[1px] h-6 bg-[#E5E7EB]" />
-              <button className="p-1 text-[#121212] hover:text-[#FF4F00] transition-colors">
-                <SlidersHorizontal className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Category Navigation ── */}
-        <div className="relative pt-4">
-          <div className="flex items-center gap-4 overflow-x-auto pb-6 no-scrollbar scroll-smooth">
+    <div className="w-full">
+      {/* Search & Filter Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-16">
+        {/* Categories */}
+        <div className="w-full lg:w-2/3 overflow-x-auto no-scrollbar mask-gradient">
+          <div className="flex gap-3 pb-4">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`flex-shrink-0 px-8 py-3 rounded-full text-[12px] font-black uppercase tracking-widest transition-all duration-300 min-h-[48px] border ${
+                className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${
                   selectedCategory === cat
-                    ? "bg-[#FF4F00] text-white border-[#FF4F00] shadow-xl shadow-orange-100"
-                    : "bg-white border-[#E5E7EB] text-[#121212]/40 hover:border-[#121212] hover:text-[#121212]"
+                    ? "bg-[#FDE68A] text-black shadow-[0_0_20px_rgba(253,230,138,0.3)]"
+                    : "bg-white/5 text-zinc-400 border border-white/10 hover:bg-white/10 hover:text-white"
                 }`}
-                style={{ fontFamily: "var(--font-montserrat)" }}
               >
                 {cat}
               </button>
             ))}
           </div>
-          <div className="lg:hidden absolute right-0 top-4 bottom-10 w-20 bg-gradient-to-l from-[#F9FAFB] to-transparent pointer-events-none" />
+        </div>
+
+        {/* Search */}
+        <div className="w-full lg:w-1/3 relative group">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#FDE68A] transition-colors">
+            <Search className="w-4 h-4" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search collection..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-12 py-4 bg-[#0a0a0a] border-b-2 border-white/10 focus:outline-none focus:bg-white/5 focus:border-[#FDE68A] transition-all text-sm font-bold text-white placeholder:text-zinc-600 placeholder:font-medium rounded-t-xl"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-[#FDE68A] transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Product Grid (Luxury Spacing) ── */}
-    <motion.div
-        layout
-        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 sm:gap-8 lg:gap-10"
-      >
+      {/* Product Grid */}
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
         <AnimatePresence mode="popLayout">
           {filteredShoes.map((shoe) => (
             <motion.div
               layout
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               key={shoe.id}
             >
               <ShoeCard shoe={shoe} />
@@ -164,28 +121,24 @@ export default function ProductGallery() {
         </AnimatePresence>
       </motion.div>
 
+      {/* Empty State */}
       {filteredShoes.length === 0 && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-48 bg-[#F9FAFB] rounded-[4rem] border-2 border-dashed border-[#E5E7EB]"
+          className="text-center py-32 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm"
         >
-          <div className="max-w-xs mx-auto space-y-6">
-            <Search className="w-16 h-16 text-[#E5E7EB] mx-auto" />
-            <div className="space-y-2">
-              <p className="text-[#121212] font-black text-xl">No Matches</p>
-              <p className="text-[#121212]/40 text-sm font-medium">Refine your search aesthetic or filters.</p>
-            </div>
-            <button 
-              onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }}
-              className="px-8 py-4 bg-[#121212] text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-[#FF4F00] transition-colors duration-500"
-              style={{ fontFamily: "var(--font-montserrat)" }}
-            >
-              Reset All
-            </button>
-          </div>
+          <Search className="w-8 h-8 text-[#FDE68A] mx-auto mb-6 opacity-50" />
+          <h3 className="text-2xl font-black tracking-tighter uppercase mb-2 text-white">No Products Found</h3>
+          <p className="text-zinc-500 font-medium mb-8 text-sm">We couldn't find anything matching your criteria.</p>
+          <button 
+            onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }}
+            className="px-8 py-4 bg-[#FDE68A] text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#D97706] transition-colors"
+          >
+            Clear Filters
+          </button>
         </motion.div>
       )}
-    </section>
+    </div>
   );
 }

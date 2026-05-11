@@ -56,19 +56,16 @@ export default function SuggestedProducts({ currentId, category }: { currentId: 
 
   return (
     <div className="mt-24 pt-24 border-t border-zinc-100">
-      <div className="flex flex-col gap-8 mb-12">
-        <h2 
-          className="text-3xl sm:text-5xl font-black text-[#121212] tracking-tighter"
-          style={{ fontFamily: "var(--font-montserrat)" }}
-        >
-          You Might<br /><span className="text-[#FF4F00]">Also Like</span>
+      <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-12">
+        <h2 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase">
+          Curated<br />For You.
         </h2>
-        <p className="text-[#121212]/50 font-medium max-w-sm">
-          More curated picks from our elite collection, handcrafted for you.
+        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 max-w-xs text-right">
+          More selections from our atelier collection.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {suggestions.map((shoe) => (
           <ShoeCard key={shoe.id} shoe={shoe} />
         ))}

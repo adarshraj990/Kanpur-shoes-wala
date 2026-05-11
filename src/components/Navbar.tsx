@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShoppingBag, User as UserIcon, LogOut, Menu, X, Zap } from "lucide-react";
+import { ShoppingBag, LogOut, Menu, X, Hexagon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +19,7 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -27,72 +27,62 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? "glass border-b border-[#F3F4F6] py-3 shadow-[0_1px_20px_rgba(0,0,0,0.03)]"
-            : "bg-transparent py-7"
+            ? "bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+            : "bg-transparent py-6"
         }`}
       >
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 flex justify-between items-center relative">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 flex justify-between items-center">
           
-          {/* Brand Name - Centered Design */}
-          <div className="flex-1 hidden lg:flex items-center gap-8">
-            <ul className="flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-[#121212]/60">
-              <li><Link href="/#gallery" className="hover:text-[#FF4F00] transition-colors">Collection</Link></li>
-              <li><Link href="/orders" className="hover:text-[#FF4F00] transition-colors">Orders</Link></li>
-              <li><Link href="/#about" className="hover:text-[#FF4F00] transition-colors">Story</Link></li>
-            </ul>
+          {/* Left: Navigation Links */}
+          <div className="flex-1 hidden md:flex items-center gap-8">
+            <Link href="/#gallery" className="text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-[#FDE68A] transition-colors">Shop</Link>
+            <Link href="/orders" className="text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-[#FDE68A] transition-colors">Orders</Link>
           </div>
 
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 group"
-          >
-            <div className="w-8 h-8 rounded-xl bg-[#FF4F00] flex items-center justify-center shadow-lg shadow-orange-200 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-4.5 h-4.5 text-white fill-white" />
-            </div>
-            <span
-              className="text-lg sm:text-xl font-black tracking-tight text-[#121212] uppercase leading-none"
-              style={{ fontFamily: "var(--font-montserrat)" }}
-            >
-              Kanpur Shoes Wala
+          {/* Center: Brand Logo */}
+          <Link href="/" className="flex-shrink-0 flex items-center justify-center gap-2 group">
+            <Hexagon className="w-6 h-6 text-[#FDE68A] group-hover:rotate-90 transition-transform duration-500 shadow-[0_0_10px_#FDE68A] rounded-full" strokeWidth={2.5} />
+            <span className="text-xl font-black tracking-tighter text-white uppercase">
+              Kanpur<span className="text-[#FDE68A]">Shoes</span>
             </span>
           </Link>
 
-          <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
-            {/* Desktop Auth */}
-            <div className="hidden md:flex items-center gap-4">
+          {/* Right: Actions */}
+          <div className="flex-1 flex justify-end items-center gap-4 sm:gap-6">
+            <div className="hidden md:flex items-center gap-6">
               {user ? (
                 <button
                   onClick={signOut}
-                  className="p-2.5 text-[#121212]/40 hover:text-[#FF4F00] transition-colors"
+                  className="text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-[#FDE68A] transition-colors flex items-center gap-2"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
                 </button>
               ) : (
                 <button
                   onClick={onAuthClick}
-                  className="text-[11px] font-black uppercase tracking-[0.15em] text-[#121212] px-6 py-2.5 border-2 border-[#121212] rounded-full hover:bg-[#121212] hover:text-white transition-all duration-300"
-                  style={{ fontFamily: "var(--font-montserrat)" }}
+                  className="text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-[#FDE68A] transition-colors"
                 >
-                  Join
+                  Account
                 </button>
               )}
             </div>
 
-            {/* Cart */}
+            {/* Cart Button */}
             <button
               onClick={onCartClick}
-              className="relative p-2.5 text-[#121212] hover:text-[#FF4F00] hover:bg-orange-50 rounded-full transition-all duration-300"
+              className="relative p-2 text-white hover:text-[#FDE68A] hover:scale-110 transition-all duration-300"
             >
-              <ShoppingBag className="w-6 h-6" />
+              <ShoppingBag className="w-5 h-5" strokeWidth={2} />
               <AnimatePresence>
                 {totalItems > 0 && (
                   <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    className="absolute top-1 right-1 bg-[#FF4F00] text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-1 -right-1 bg-[#FDE68A] text-black text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
                   >
                     {totalItems}
                   </motion.span>
@@ -100,65 +90,50 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
               </AnimatePresence>
             </button>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2.5 text-[#121212] hover:text-[#FF4F00] transition-all"
+              className="md:hidden p-2 text-white hover:text-[#FDE68A]"
             >
-              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Full-Screen Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="fixed inset-0 z-40 bg-white pt-24 px-8 lg:hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-[#050505]/95 backdrop-blur-3xl pt-28 px-8 md:hidden flex flex-col"
           >
-            <div className="flex flex-col gap-8">
-              <Link
-                href="/#gallery"
-                onClick={() => setMobileOpen(false)}
-                className="text-4xl font-black text-[#121212] tracking-tighter"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                Collection
-              </Link>
-              <Link
-                href="/orders"
-                onClick={() => setMobileOpen(false)}
-                className="text-4xl font-black text-[#121212] tracking-tighter"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                My Orders
-              </Link>
-              <Link
-                href="/#about"
-                onClick={() => setMobileOpen(false)}
-                className="text-4xl font-black text-[#121212] tracking-tighter"
-                style={{ fontFamily: "var(--font-montserrat)" }}
-              >
-                Our Story
-              </Link>
-              <div className="mt-8 pt-8 border-t border-zinc-100 flex flex-col gap-4">
+            <div className="flex justify-end mb-8">
+              <button onClick={() => setMobileOpen(false)} className="p-2 text-white bg-white/10 hover:bg-white/20 transition-colors rounded-full border border-white/5">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-6 text-center">
+              <Link href="/#gallery" onClick={() => setMobileOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-white hover:text-[#FDE68A] transition-colors">Shop</Link>
+              <Link href="/orders" onClick={() => setMobileOpen(false)} className="text-3xl font-black uppercase tracking-tighter text-white hover:text-[#FDE68A] transition-colors">Orders</Link>
+              
+              <div className="mt-8 pt-8 border-t border-white/10">
                 {user ? (
                   <button
                     onClick={() => { signOut(); setMobileOpen(false); }}
-                    className="w-full py-5 bg-[#121212] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em]"
+                    className="w-full py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors rounded-xl font-bold text-sm uppercase tracking-widest"
                   >
-                    Sign Out
+                    Logout
                   </button>
                 ) : (
                   <button
                     onClick={() => { onAuthClick(); setMobileOpen(false); }}
-                    className="w-full py-5 bg-[#FF4F00] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-orange-200"
+                    className="w-full py-4 bg-[#FDE68A] text-black hover:bg-[#D97706] transition-colors rounded-xl font-bold text-sm uppercase tracking-widest"
                   >
-                    Join Members
+                    Account Login
                   </button>
                 )}
               </div>

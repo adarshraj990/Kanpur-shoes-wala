@@ -3,13 +3,6 @@
 :root {
   --font-montserrat: 'Montserrat', sans-serif;
   --font-inter: 'Inter', sans-serif;
-  --color-brand: #FF4500;
-  --color-brand-light: #FF6B35;
-  --color-bg: #FFFFFF;
-  --color-text: #1A1A1A;
-  --color-muted: #6B7280;
-  --color-surface: #F8F8F8;
-  --color-border: #E5E7EB;
 }
 
 * {
@@ -21,75 +14,53 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  background-color: #050505;
 }
 
 body {
   font-family: var(--font-inter);
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: #050505;
+  color: #FAFAFA;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Premium Scrollbar for Desktop */
-@media (min-width: 1024px) {
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #FAFAFA;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #DDD;
-    border-radius: 10px;
-    border: 2px solid #FAFAFA;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #FF4500;
-  }
+/* Premium Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
 }
 
-/* Selection color */
-::selection {
-  background: #FF4500;
-  color: white;
-}
-
-.font-montserrat {
-  font-family: var(--font-montserrat);
-}
-
-.font-inter {
-  font-family: var(--font-inter);
-}
-
-/* Desktop-only hover glow */
-.hover-glow:hover {
-  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.15);
-  transform: translateY(-4px);
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Glassmorphism */
-.glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.dark-glass {
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Custom Scrollbar for inner elements */
+/* Custom Hide Scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

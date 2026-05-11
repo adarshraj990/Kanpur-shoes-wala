@@ -41,7 +41,7 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-inter bg-white text-[#1A1A1A]">
+      <body className="min-h-full flex flex-col font-inter bg-[#050505] text-[#FAFAFA]">
         <AuthProvider>
           <CartProvider>
             <VisitorTracker />

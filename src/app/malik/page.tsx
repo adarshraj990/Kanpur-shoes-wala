@@ -7,7 +7,7 @@ import { Check, Loader2, Image as ImageIcon, Trash2, Plus, Minus, Package, Layou
 import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 
-const ADMIN_EMAILS = ["bhaikumarark99@gmail.com", "adarshfouryt@gmail.com"];
+const ADMIN_EMAILS = ["adarshfouryt@gmail.com", "bhaikumarark99@gmail.com"];
 const CATEGORIES = ["Premium Shoes", "Sneakers", "Chelsea Boots", "Slides & Sandals", "Running & Sports", "Casual Wear"];
 
 type Tab = "overview" | "products" | "inventory" | "orders";
@@ -15,6 +15,8 @@ type Tab = "overview" | "products" | "inventory" | "orders";
 export default function MalikDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [name, setName] = useState(""); const [description, setDescription] = useState(""); const [detailedDescription, setDetailedDescription] = useState(""); const [price, setPrice] = useState(""); const [category, setCategory] = useState("Premium Shoes"); const [stock, setStock] = useState(10); const [imageUrls, setImageUrls] = useState<string[]>([]); const [uploading, setUploading] = useState(false); const [saving, setSaving] = useState(false); const [success, setSuccess] = useState(false);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const AVAILABLE_SIZES = ["6", "7", "8", "9", "10", "11"];
   const [shoesList, setShoesList] = useState<any[]>([]);
   const [loadingShoes, setLoadingShoes] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -27,8 +29,20 @@ export default function MalikDashboard() {
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   useEffect(() => {
-    if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email || ""))) router.push("/");
-    else { fetchAnalytics(); fetchShoes(); }
+    console.log("Admin Panel Auth Check:", { user: user?.email, authLoading });
+    if (!authLoading) {
+      if (!user) {
+        console.warn("No user found, redirecting to home...");
+        router.push("/");
+      } else if (!ADMIN_EMAILS.includes(user.email || "")) {
+        console.warn(`User ${user.email} is not an admin. Redirecting...`);
+        router.push("/");
+      } else {
+        console.log("Admin access granted.");
+        fetchAnalytics();
+        fetchShoes();
+      }
+    }
   }, [user, authLoading]);
 
   const fetchShoes = async () => { setLoadingShoes(true); const { data } = await supabase.from("shoes").select("*").order("created_at", { ascending: false }); if (data) setShoesList(data); setLoadingShoes(false); };
@@ -36,7 +50,7 @@ export default function MalikDashboard() {
   const handleUpdateStock = async (id: number, cur: number, delta: number) => { const ns = Math.max(0, cur + delta); await supabase.from("shoes").update({ stock: ns }).eq("id", id); setShoesList(p => p.map(s => s.id === id ? { ...s, stock: ns } : s)); };
   const handleDeleteProduct = async (id: number) => { const { error } = await supabase.from("shoes").delete().eq("id", id); if (!error) { setShoesList(p => p.filter(s => s.id !== id)); setDeleteId(null); } };
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const files = Array.from(e.target.files || []); if (!files.length) return; setUploading(true); try { const urls = await Promise.all(files.map(async f => { const fd = new FormData(); fd.append("file", f); fd.append("upload_preset", UPLOAD_PRESET!); const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd }); return (await r.json()).secure_url; })); setImageUrls(p => [...p, ...urls.filter(Boolean)]); } finally { setUploading(false); } };
-  const handleSaveProduct = async () => { const np = parseFloat(price); if (!name || !imageUrls.length || isNaN(np)) return; setSaving(true); try { const { error } = await supabase.from("shoes").insert([{ name, description, detailed_description: detailedDescription, price: np, category, stock, image_url: imageUrls[0], image_urls: imageUrls, created_at: new Date().toISOString() }]); if (error) throw error; setSuccess(true); setTimeout(() => setSuccess(false), 3000); setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice(""); setCategory("Premium Shoes"); setStock(10); fetchShoes(); fetchAnalytics(); } catch (e: any) { alert(e.message); } finally { setSaving(false); } };
+  const handleSaveProduct = async () => { const np = parseFloat(price); if (!name || !imageUrls.length || isNaN(np)) return; setSaving(true); try { const { error } = await supabase.from("shoes").insert([{ name, description, detailed_description: detailedDescription, price: np, category, stock, image_url: imageUrls[0], image_urls: imageUrls, sizes: selectedSizes, created_at: new Date().toISOString() }]); if (error) throw error; setSuccess(true); setTimeout(() => setSuccess(false), 3000); setName(""); setDescription(""); setDetailedDescription(""); setImageUrls([]); setPrice(""); setCategory("Premium Shoes"); setStock(10); setSelectedSizes([]); fetchShoes(); fetchAnalytics(); } catch (e: any) { alert(e.message); } finally { setSaving(false); } };
   const generateShippingLabel = (order: any) => { const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a6" }); const m = 5, w = 95, h = 138; doc.setLineWidth(1.5); doc.rect(m, m, w, h); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("KANPUR SHOES WALA", 52.5, 15, { align: "center" }); doc.setLineWidth(0.5); doc.line(m + 5, 18, 100, 18); doc.setFontSize(10); doc.text("TO:", m + 5, 28); doc.setFontSize(12); doc.text(order.customer_name?.toUpperCase() || "N/A", m + 5, 35); doc.setFontSize(9); doc.setFont("helvetica", "normal"); const al = doc.splitTextToSize(`${order.address || ""}, ${order.city || ""} - ${order.pincode || ""}`, 70); doc.text(al, m + 5, 42); doc.setFont("helvetica", "bold"); doc.text(`Ph: ${order.phone || "N/A"}`, m + 5, 42 + al.length * 5); doc.line(m + 2, 65, 100, 65); doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.text("FROM: KANPUR SHOES WALA, Kanpur, UP - 208001", m + 5, 72); doc.setFont("helvetica", "bold"); doc.text(`ORDER: #${order.id.toString().slice(-6).toUpperCase()}`, m + 5, 85); doc.setFont("helvetica", "normal"); doc.text(`Item: ${order.shoes?.name || "Premium Shoe"}`, m + 5, 92); doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, m + 5, 99); doc.save(`label_${order.id}.pdf`); };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]"><Loader2 className="animate-spin text-white w-8 h-8" /></div>;
@@ -139,6 +153,24 @@ export default function MalikDashboard() {
               </div>
               <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Short Tagline</label><input value={description} onChange={e => setDescription(e.target.value)} placeholder="Handcrafted in Kanpur" className={inputCls} /></div>
               <div className="space-y-1.5"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Detailed Description</label><textarea value={detailedDescription} onChange={e => setDetailedDescription(e.target.value)} rows={3} className={inputCls + " resize-none"} /></div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Available Sizes (UK)</label>
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_SIZES.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size])}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${
+                        selectedSizes.includes(size) 
+                          ? "bg-[#FF4F00] border-[#FF4F00] text-white" 
+                          : "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-500 hover:border-zinc-400"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Product Images</label>
                 <div className="grid grid-cols-4 gap-3">
