@@ -236,27 +236,6 @@ export default function MalikDashboard() {
     { id: "orders", label: "Orders", icon: ShoppingBag },
   ];
 
-  const handleShipOrder = async (order: any) => {
-    if (!confirm(`Create shipment for ${order.customer_name} via NimbusPost?`)) return;
-    
-    try {
-      const res = await fetch("/api/nimbus/ship", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(order),
-      });
-      const data = await res.json();
-      if (data.status) {
-        alert("Shipment created successfully! AWB: " + (data.data?.awb_number || "Pending"));
-        fetchAnalytics(); // Refresh
-      } else {
-        alert("Failed to create shipment: " + (data.message || "Unknown error"));
-      }
-    } catch (err) {
-      alert("Error connecting to NimbusPost API");
-    }
-  };
-
   const inputCls = "w-full px-4 py-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#FF4F00] transition-colors";
 
   return (
@@ -555,15 +534,9 @@ export default function MalikDashboard() {
                               order.status === "success" ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-orange-500/10 border-orange-500/20 text-orange-500"
                             }`}>{order.status}</span>
                           </td>
-                          <td className="px-8 py-6 flex items-center gap-2">
+                          <td className="px-8 py-6">
                             <button onClick={() => generateShippingLabel(order)} className="flex items-center gap-2 px-5 py-3 bg-[#1A1A1A] border border-[#222] hover:border-[#FF4F00] hover:text-[#FF4F00] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
                               <Printer className="w-3.5 h-3.5" /> Label
-                            </button>
-                            <button 
-                              onClick={() => handleShipOrder(order)} 
-                              className="flex items-center gap-2 px-5 py-3 bg-[#1A1A1A] border border-[#222] hover:border-blue-500 hover:text-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                              <Package className="w-3.5 h-3.5" /> Ship
                             </button>
                           </td>
                         </tr>
