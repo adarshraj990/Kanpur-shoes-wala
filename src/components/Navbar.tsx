@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { ShoppingBag, LogOut, Menu, X, Search, Heart, User } from "lucide-react";
+import { ShoppingBag, LogOut, Menu, X, Search, Heart, User, ChevronRight } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
