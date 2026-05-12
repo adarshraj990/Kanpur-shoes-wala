@@ -135,9 +135,9 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2.5 rounded-xl text-[#555] hover:bg-[#f7f7f7] transition-all"
+              className="md:hidden p-2.5 rounded-xl text-[#111] hover:bg-[#f7f7f7] active:scale-95 transition-all"
             >
-              {mobileOpen ? <X className="w-[18px] h-[18px]" /> : <Menu className="w-[18px] h-[18px]" />}
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -189,48 +189,65 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed inset-0 z-40 bg-white pt-[100px] px-8 md:hidden flex flex-col"
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-40 bg-white md:hidden flex flex-col"
           >
-            <div className="flex flex-col gap-4">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`text-2xl font-black uppercase tracking-tight border-b border-[#efefef] pb-4 ${
-                    link.accent ? "text-red-500" : "text-black"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/orders"
-                onClick={() => setMobileOpen(false)}
-                className="text-2xl font-black uppercase tracking-tight border-b border-[#efefef] pb-4 text-black"
-              >
-                Orders
-              </Link>
+            <div className="pt-24 px-8 flex flex-col h-full">
+              <div className="flex flex-col gap-1">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`text-[2.5rem] font-black uppercase tracking-tighter transition-all active:scale-95 ${
+                      link.accent ? "text-red-500" : "text-black"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
 
-              <div className="mt-6">
-                {user ? (
-                  <button
-                    onClick={() => { signOut(); setMobileOpen(false); }}
-                    className="w-full py-4 border border-[#e5e5e5] text-black rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#f7f7f7] transition-all"
-                  >
-                    Sign Out
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => { onAuthClick(); setMobileOpen(false); }}
-                    className="w-full py-4 bg-black text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 transition-all"
-                  >
-                    Account Login
-                  </button>
-                )}
+              <div className="mt-12 flex flex-col gap-6">
+                <Link
+                  href="/orders"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-bold uppercase tracking-widest text-[#999] flex items-center gap-3"
+                >
+                  My Orders <ChevronRight className="w-4 h-4" />
+                </Link>
+
+                <div className="mt-auto pb-12">
+                  {user ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-4 bg-[#f7f7f7] rounded-2xl">
+                        <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold">
+                          {user.email?.[0].toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-[#999] uppercase">Logged in as</span>
+                          <span className="text-sm font-bold text-black truncate max-w-[200px]">{user.email}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { signOut(); setMobileOpen(false); }}
+                        className="w-full py-4 border-2 border-[#111] text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { onAuthClick(); setMobileOpen(false); }}
+                      className="w-full py-5 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all shadow-xl shadow-black/10"
+                    >
+                      Account Login
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>

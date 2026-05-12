@@ -85,13 +85,13 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
           {/* Wishlist */}
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(!wishlisted); }}
-            className={`absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm transition-all pointer-events-auto ${wishlisted ? "text-red-500" : "text-[#999]"}`}
+            className={`absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm transition-all pointer-events-auto md:opacity-0 md:group-hover:opacity-100 ${wishlisted ? "text-red-500" : "text-[#999]"}`}
           >
             <Heart className={`w-4 h-4 ${wishlisted ? "fill-red-500" : ""}`} />
           </button>
 
           {/* Add to Cart / Size Picker */}
-          <div className="absolute bottom-3 inset-x-3 pointer-events-auto">
+          <div className="absolute bottom-3 inset-x-3 pointer-events-auto md:opacity-0 md:group-hover:opacity-100">
             {showSizes ? (
               <div 
                 className="bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-300"
@@ -132,6 +132,27 @@ export default function ShoeCard({ shoe }: { shoe: Shoe }) {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Mobile Always-Visible Action (Icon only) */}
+        <div className="md:hidden absolute top-3 right-3 flex flex-col gap-2 z-10">
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(!wishlisted); }}
+            className={`p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all ${wishlisted ? "text-red-500" : "text-[#999]"}`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${wishlisted ? "fill-red-500" : ""}`} />
+          </button>
+        </div>
+        
+        <div className="md:hidden absolute bottom-3 right-3 z-10">
+          <button
+            onClick={handleAddToCart}
+            className={`p-2.5 rounded-full shadow-lg transition-all ${
+              added ? "bg-green-500 text-white" : "bg-black text-white"
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Category badge */}

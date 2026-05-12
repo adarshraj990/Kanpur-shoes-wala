@@ -98,18 +98,18 @@ export default function ProductDetailPage() {
       <div className="pt-[100px] md:pt-[116px] pb-20 px-5 sm:px-10 max-w-[1400px] mx-auto">
 
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-[11px] font-medium text-[#999] mb-10">
+        <nav className="flex items-center gap-2 text-[10px] sm:text-[11px] font-medium text-[#999] mb-6 sm:mb-10 overflow-x-auto no-scrollbar whitespace-nowrap pb-2">
           <Link href="/" className="hover:text-black transition-colors">Home</Link>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 shrink-0" />
           <a href="#gallery" className="hover:text-black transition-colors">Shoes</a>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 shrink-0" />
           {shoe.category && (
             <>
               <span className="hover:text-black transition-colors cursor-pointer">{shoe.category}</span>
-              <ChevronRight className="w-3 h-3" />
+              <ChevronRight className="w-3 h-3 shrink-0" />
             </>
           )}
-          <span className="text-black font-semibold truncate max-w-[180px]">{shoe.name}</span>
+          <span className="text-black font-semibold">{shoe.name}</span>
         </nav>
 
         {/* Main product layout */}
@@ -135,18 +135,18 @@ export default function ProductDetailPage() {
 
               {/* Nav arrows */}
               {gallery.length > 1 && (
-                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : gallery.length - 1))}
-                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+                    className="p-2.5 sm:p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
                   >
-                    <ChevronLeft className="w-5 h-5 text-black" />
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
                   </button>
                   <button
                     onClick={() => setActiveImage((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
-                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+                    className="p-2.5 sm:p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
                   >
-                    <ChevronRight className="w-5 h-5 text-black" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
                   </button>
                 </div>
               )}
@@ -182,12 +182,12 @@ export default function ProductDetailPage() {
 
             {/* Tabs */}
             <div className="border-t border-[#efefef] pt-8 mt-8">
-              <div className="flex gap-6 mb-6 border-b border-[#efefef]">
+              <div className="flex gap-6 mb-6 border-b border-[#efefef] overflow-x-auto no-scrollbar whitespace-nowrap">
                 {DETAIL_TABS.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`pb-3 text-[12px] font-bold uppercase tracking-wider transition-all ${
+                    className={`pb-3 text-[11px] sm:text-[12px] font-bold uppercase tracking-wider transition-all shrink-0 ${
                       activeTab === tab
                         ? "text-black border-b-2 border-black -mb-px"
                         : "text-[#999] hover:text-black"
@@ -379,6 +379,28 @@ export default function ProductDetailPage() {
               Share this product
             </button>
           </div>
+        </div>
+
+        {/* Mobile Sticky CTA */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#efefef] p-4 z-50 flex gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+          <button
+            onClick={handleAddToCart}
+            className={`flex-grow btn-pill flex items-center justify-center gap-2 py-4 ${
+              addedToCart ? "bg-green-600 text-white" : "btn-pill-dark"
+            }`}
+          >
+            {addedToCart ? (
+              <><Check className="w-4 h-4" /> In Cart</>
+            ) : (
+              <>₹{shoe.price.toLocaleString()} — Add to Cart</>
+            )}
+          </button>
+          <button
+            onClick={() => setWishlist(!wishlist)}
+            className={`p-4 rounded-2xl border border-[#efefef] ${wishlist ? "text-red-500 bg-red-50" : "text-black"}`}
+          >
+            <Heart className={`w-5 h-5 ${wishlist ? "fill-red-500" : ""}`} />
+          </button>
         </div>
 
         {/* Reviews Section */}

@@ -41,7 +41,7 @@ export default function Home() {
               className="flex flex-col gap-7 z-10"
             >
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#999]">New Collection</span>
-              <h1 className="text-[3.5rem] sm:text-[5rem] lg:text-[5.5rem] font-black leading-[0.88] tracking-tight text-[#111]">
+              <h1 className="text-[2.75rem] sm:text-[5rem] lg:text-[5.5rem] font-black leading-[0.95] sm:leading-[0.88] tracking-tight text-[#111]">
                 Step Into<br />
                 <span className="text-[#111]">The Future</span>
               </h1>
@@ -96,12 +96,12 @@ export default function Home() {
       <section className="border-y border-[#efefef] bg-white">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-10 py-5 grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-[#efefef]">
           {[
-            { icon: Truck, label: "Free Delivery", sub: "On orders over ₹500" },
-            { icon: ShieldCheck, label: "Secure Payment", sub: "100% secured checkout" },
-            { icon: RefreshCcw, label: "Easy Returns", sub: "30-day return policy" },
-            { icon: "24h", label: "24/7 Support", sub: "Dedicated support" },
+            { icon: Truck, label: "Free Delivery", sub: "Over ₹500" },
+            { icon: ShieldCheck, label: "Secure", sub: "100% Payment" },
+            { icon: RefreshCcw, label: "Easy Returns", sub: "30-day policy" },
+            { icon: "24h", label: "24/7 Support", sub: "Always here" },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 px-6 py-2 first:pl-0 last:pr-0">
+            <div key={i} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-2 first:pl-0 last:pr-0 border-b border-[#efefef] sm:border-b-0 md:border-b-0">
               <div className="w-8 h-8 rounded-lg bg-[#f7f7f7] flex items-center justify-center shrink-0">
                 {typeof item.icon === "string" ? (
                   <span className="text-[10px] font-black text-[#111]">{item.icon}</span>
@@ -109,9 +109,9 @@ export default function Home() {
                   <item.icon className="w-4 h-4 text-[#111]" strokeWidth={1.75} />
                 )}
               </div>
-              <div className="hidden sm:block">
-                <p className="text-[12px] font-bold text-[#111] leading-tight">{item.label}</p>
-                <p className="text-[10px] text-[#999]">{item.sub}</p>
+              <div className="flex flex-col">
+                <p className="text-[11px] sm:text-[12px] font-bold text-[#111] leading-tight">{item.label}</p>
+                <p className="text-[9px] sm:text-[10px] text-[#999]">{item.sub}</p>
               </div>
             </div>
           ))}
@@ -127,15 +127,19 @@ export default function Home() {
               View all <ChevronRight className="w-3.5 h-3.5" />
             </a>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-            {CATEGORY_PREVIEWS.map((cat) => (
-              <a key={cat.label} href="#gallery" className="flex flex-col items-center gap-3 group">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            {CATEGORY_PREVIEWS.map((cat, i) => (
+              <a 
+                key={cat.label} 
+                href="#gallery" 
+                className={`flex flex-col items-center gap-3 group ${i === 4 ? "hidden sm:flex" : ""}`}
+              >
                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#f7f7f7]">
                   <Image
                     src={cat.img}
                     alt={cat.label}
                     fill
-                    sizes="20vw"
+                    sizes="(max-width: 640px) 45vw, 20vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>

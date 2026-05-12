@@ -107,24 +107,24 @@ export default function OrderHistoryPage() {
           {!user && orders.length === 0 && (
             <div className="w-full md:w-auto">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#555] mb-2">Track Guest Order</p>
-              <form onSubmit={handlePhoneSearch} className="relative flex items-center gap-2">
-                <div className="relative">
+              <form onSubmit={handlePhoneSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative flex-1 sm:flex-none">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#aaa]" />
                   <input
                     type="tel"
                     placeholder="Mobile Number"
                     value={phoneSearch}
                     onChange={(e) => setPhoneSearch(e.target.value)}
-                    className="ksw-search pr-4"
-                    style={{ paddingLeft: "36px", width: "260px" }}
+                    className="ksw-search pr-4 sm:w-[260px]"
+                    style={{ paddingLeft: "36px" }}
                   />
                 </div>
                 <button
                   disabled={isSearching}
-                  className="btn-pill btn-pill-dark py-2.5 px-5 flex items-center gap-1.5"
+                  className="btn-pill btn-pill-dark py-3.5 px-6 flex items-center justify-center gap-2"
                 >
                   {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  Find
+                  Find Order
                 </button>
               </form>
             </div>
@@ -187,8 +187,8 @@ export default function OrderHistoryPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <h3 className="font-bold text-[15px] text-black">{order.shoes?.name || "Premium Footwear"}</h3>
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
+                    <h3 className="font-bold text-[14px] sm:text-[15px] text-black line-clamp-1">{order.shoes?.name || "Premium Footwear"}</h3>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] font-bold text-[#999] uppercase tracking-wider">
                         #{order.id.toString().slice(-6).toUpperCase()}
@@ -198,12 +198,12 @@ export default function OrderHistoryPage() {
                         {new Date(order.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-[12px] text-[#777] flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" />{order.city}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+                      <span className="text-[11px] text-[#777] flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />{order.city}
                       </span>
-                      <span className="text-[12px] text-[#777] flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5" />{order.phone}
+                      <span className="text-[11px] text-[#777] flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 shrink-0" />{order.phone}
                       </span>
                     </div>
                   </div>

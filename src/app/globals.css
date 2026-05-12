@@ -23,6 +23,7 @@ html {
   scroll-behavior: smooth;
   overflow-x: hidden;
   background-color: #ffffff;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -146,6 +147,17 @@ body {
 }
 .ksw-search::placeholder {
   color: #aaaaaa;
+}
+
+@media (max-width: 640px) {
+  .btn-pill {
+    padding: 12px 24px;
+    font-size: 10px;
+  }
+  
+  .ksw-card:hover {
+    transform: none; /* Disable lift on mobile touch */
+  }
 }
 
 /* Standard Input */

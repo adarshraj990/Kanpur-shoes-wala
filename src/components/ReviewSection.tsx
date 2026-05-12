@@ -110,21 +110,21 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
         {/* Left: Summary & Form */}
         <div className="lg:w-[340px] shrink-0 space-y-8">
           <div>
-            <h2 className="text-[22px] font-black tracking-tight text-black mb-5">Customer Reviews</h2>
+            <h2 className="text-[20px] sm:text-[22px] font-black tracking-tight text-black mb-5">Customer Reviews</h2>
 
             {/* Big rating */}
-            <div className="flex items-end gap-4 mb-4">
-              <span className="text-[48px] font-black leading-none text-black">{averageRating}</span>
-              <div className="pb-2">
+            <div className="flex items-end gap-4 mb-6">
+              <span className="text-[40px] sm:text-[48px] font-black leading-none text-black">{averageRating}</span>
+              <div className="pb-1 sm:pb-2">
                 <div className="flex gap-0.5 mb-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <Star
                       key={s}
-                      className={`w-4 h-4 ${Number(averageRating) >= s ? "star-filled" : "star-empty"}`}
+                      className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${Number(averageRating) >= s ? "star-filled" : "star-empty"}`}
                     />
                   ))}
                 </div>
-                <p className="text-[12px] text-[#999]">Based on {reviews.length} reviews</p>
+                <p className="text-[11px] sm:text-[12px] text-[#999]">Based on {reviews.length} reviews</p>
               </div>
             </div>
 

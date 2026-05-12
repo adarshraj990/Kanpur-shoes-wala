@@ -140,8 +140,8 @@ export default function Page() {
           {/* Checkout Form */}
           <div className="lg:col-span-7 space-y-12">
             <div>
-              <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase mb-4">Checkout</h1>
-              <p className="text-zinc-500 font-medium">Complete your order by providing your shipping details.</p>
+              <h1 className="text-3xl sm:text-6xl font-black tracking-tighter uppercase mb-2">Checkout</h1>
+              <p className="text-zinc-500 text-sm font-medium">Complete your order details below.</p>
             </div>
 
             <form onSubmit={handleCheckout} className="space-y-10">
@@ -216,7 +216,7 @@ export default function Page() {
 
               <button 
                 type="submit" disabled={loading}
-                className="w-full py-6 bg-[#FF4F00] text-white rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-[#E64600] transition-all shadow-[0_20px_40px_rgba(255,79,0,0.2)] flex items-center justify-center gap-3"
+                className="w-full py-5 sm:py-6 bg-[#FF4F00] text-white rounded-full font-black text-xs sm:text-sm uppercase tracking-[0.2em] hover:bg-[#E64600] transition-all shadow-[0_20px_40px_rgba(255,79,0,0.2)] flex items-center justify-center gap-3"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Pay ₹{totalPrice.toLocaleString()} <ArrowRight className="w-4 h-4" /></>}
               </button>
@@ -225,8 +225,8 @@ export default function Page() {
 
           {/* Order Summary */}
           <div className="lg:col-span-5">
-            <div className="bg-[#111] border border-[#1A1A1A] rounded-[3rem] p-10 sticky top-12 space-y-10">
-              <h3 className="text-xl font-black uppercase tracking-tight">Order Summary</h3>
+            <div className="bg-[#111] border border-[#1A1A1A] rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 sticky top-12 space-y-8 sm:space-y-10">
+              <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight">Order Summary</h3>
               
               <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                 {cart.map((item) => (
