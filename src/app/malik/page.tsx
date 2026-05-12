@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Image as ImageIcon, Trash2, Plus, Minus, Package, LayoutGrid, ShoppingCart, Printer, User, MapPin, Phone, LogOut, BarChart3, ArrowUpRight } from "lucide-react";
+import { Check, Loader2, Image as ImageIcon, Trash2, Plus, Minus, Package, LayoutGrid, ShoppingCart, ShoppingBag, Printer, User, MapPin, Phone, LogOut, BarChart3, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 import Link from "next/link";
