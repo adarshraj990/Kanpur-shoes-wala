@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, Image as ImageIcon, Trash2, Plus, Minus, Package, LayoutGrid, ShoppingCart, Printer, User, MapPin, Phone, LogOut, BarChart3, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
+import Link from "next/link";
 
 const ADMIN_EMAILS = ["adarshfouryt@gmail.com", "bhaikumarark99@gmail.com"];
 const CATEGORIES = ["Premium Shoes", "Sneakers", "Chelsea Boots", "Slides & Sandals", "Running & Sports", "Casual Wear"];
