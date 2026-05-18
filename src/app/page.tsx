@@ -11,11 +11,14 @@ import Link from "next/link";
 import Image from "next/image";
 
 const CATEGORY_PREVIEWS = [
-  { label: "Chelsea", img: "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&q=80&w=400" },
+  { label: "Chelsea Boots", img: "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&q=80&w=400" },
   { label: "Sneakers", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=400" },
   { label: "Loafers", img: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&q=80&w=400" },
   { label: "Formals", img: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&q=80&w=400" },
-  { label: "Sports", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400" },
+  { label: "Running & Sports", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400" },
+  { label: "Slides & Sandals", img: "https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&q=80&w=400" },
+  { label: "Casual Wear", img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&q=80&w=400" },
+  { label: "Premium Shoes", img: "https://images.unsplash.com/photo-1486308512493-ae6a6e4852e7?auto=format&fit=crop&q=80&w=400" },
 ];
 
 export default function Home() {
@@ -29,7 +32,7 @@ export default function Home() {
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
       {/* ── HERO ── */}
-      <section className="pt-[100px] md:pt-[116px]">
+      <section className="pt-[120px] sm:pt-[130px] md:pt-[140px]">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-10 py-8 md:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[480px]">
 
@@ -38,10 +41,10 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col gap-7 z-10"
+              className="flex flex-col gap-7 z-10 pt-4"
             >
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#999]">New Collection</span>
-              <h1 className="text-[2.75rem] sm:text-[5rem] lg:text-[5.5rem] font-black leading-[0.95] sm:leading-[0.88] tracking-tight text-[#111]">
+              <h1 className="text-[2.75rem] sm:text-[5rem] lg:text-[5.5rem] font-black leading-[1.1] sm:leading-[0.88] tracking-tight text-[#111] font-montserrat">
                 Step Into<br />
                 <span className="text-[#111]">The Future</span>
               </h1>
@@ -127,23 +130,23 @@ export default function Home() {
               View all <ChevronRight className="w-3.5 h-3.5" />
             </a>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            {CATEGORY_PREVIEWS.map((cat, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            {CATEGORY_PREVIEWS.map((cat) => (
               <a 
                 key={cat.label} 
                 href="#gallery" 
-                className={`flex flex-col items-center gap-3 group ${i === 4 ? "hidden sm:flex" : ""}`}
+                className="flex flex-col items-center gap-3 group"
               >
                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#f7f7f7]">
                   <Image
                     src={cat.img}
                     alt={cat.label}
                     fill
-                    sizes="(max-width: 640px) 45vw, 20vw"
+                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 10vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <span className="text-[12px] font-bold text-[#333] group-hover:text-black transition-colors">{cat.label}</span>
+                <span className="text-[11px] font-bold text-[#333] group-hover:text-black transition-colors text-center">{cat.label}</span>
               </a>
             ))}
           </div>
@@ -220,9 +223,9 @@ export default function Home() {
             {/* Brand */}
             <div className="lg:col-span-1">
               <Link href="/" className="flex items-center gap-1.5 mb-4">
-                <span className="text-[20px] font-black tracking-tighter text-[#111] leading-none uppercase flex flex-col">
+                <span className="text-[20px] font-black tracking-tighter text-[#111] leading-tight uppercase flex flex-col font-montserrat">
                   <span>Kanpur Shoes</span>
-                  <span className="text-[10px] tracking-[0.4em] text-[#999] -mt-0.5">Wala</span>
+                  <span className="text-[10px] tracking-[0.4em] text-[#999] mt-0">Wala</span>
                 </span>
               </Link>
               <p className="text-[13px] text-[#777] leading-relaxed max-w-[220px]">
@@ -230,13 +233,56 @@ export default function Home() {
               </p>
               {/* Social links */}
               <div className="flex gap-3 mt-5">
-                {["tw", "ig", "fb", "yt"].map((s) => (
+                {[
+                  {
+                    href: "https://www.instagram.com/kanpurshoeswala78?igsh=MWg0ZmNiZ2l3Zzd6dQ==",
+                    label: "Instagram",
+                    svg: (
+                      <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                      </svg>
+                    )
+                  },
+                  {
+                    href: "https://www.youtube.com/@kanpurshoeswala78",
+                    label: "YouTube",
+                    svg: (
+                      <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                      </svg>
+                    )
+                  },
+                  {
+                    href: "#",
+                    label: "Facebook",
+                    svg: (
+                      <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                      </svg>
+                    )
+                  },
+                  {
+                    href: "#",
+                    label: "Twitter",
+                    svg: (
+                      <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                      </svg>
+                    )
+                  }
+                ].map((s, idx) => (
                   <a
-                    key={s}
-                    href="#"
-                    className="w-8 h-8 rounded-lg bg-[#f7f7f7] hover:bg-[#111] flex items-center justify-center transition-all group"
+                    key={idx}
+                    href={s.href}
+                    target={s.href !== "#" ? "_blank" : undefined}
+                    rel={s.href !== "#" ? "noopener noreferrer" : undefined}
+                    className="w-8 h-8 rounded-lg bg-[#f7f7f7] hover:bg-[#111] text-[#999] hover:text-white flex items-center justify-center transition-all group"
+                    title={s.label}
                   >
-                    <span className="text-[9px] font-black uppercase text-[#999] group-hover:text-white">{s}</span>
+                    {s.svg}
                   </a>
                 ))}
               </div>

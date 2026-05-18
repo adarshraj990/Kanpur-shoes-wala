@@ -53,9 +53,9 @@ export default function Navbar({ onCartClick, onAuthClick }: NavbarProps) {
 
           {/* Brand logo */}
           <Link href="/" className="flex items-center gap-1.5 shrink-0 group">
-            <span className="text-[20px] font-black tracking-tighter text-[#111] leading-none uppercase flex flex-col">
+            <span className="text-[20px] font-black tracking-tighter text-[#111] leading-tight uppercase flex flex-col font-montserrat">
               <span>Kanpur Shoes</span>
-              <span className="text-[10px] tracking-[0.4em] text-[#999] -mt-0.5">Wala</span>
+              <span className="text-[10px] tracking-[0.4em] text-[#999] mt-0">Wala</span>
             </span>
           </Link>
 
